@@ -42,7 +42,7 @@ A Haul with one sofa comes to **$62.50**, the figure in the spec. The 25% platfo
 
 Everything lives in `lib/data/mock_data.dart` and is meant to be swapped for real services:
 
-- **Map:** a real street map of Duncan, BC (OpenStreetMap data, CARTO light tiles, via `flutter_map`; `lib/widgets/movr_map.dart`). Routes follow real roads from the public OSRM demo server (`lib/services/routing.dart`) and fall back to straight lines if it can't be reached. The addresses, trucks and drivers on it are still made up. Production: Google Maps (`google_maps_flutter`, needs an API key with billing) or a paid tile/routing plan, plus live driver GPS.
+- **Map:** a real street map of Duncan, BC (standard OpenStreetMap tiles, no key needed, softened to grey, via `flutter_map`; `lib/widgets/movr_map.dart`). Routes follow real roads from the public OSRM demo server (`lib/services/routing.dart`) and fall back to straight lines if it can't be reached. The addresses, trucks and drivers on it are still made up. OpenStreetMap's free tile server is only for light use, so production needs Google Maps (`google_maps_flutter`, an API key with billing) or a paid tile/routing plan, plus live driver GPS.
 - **AI scan:** the camera view is simulated and cycles through common items. Production: an on-device vision model or cloud vision API mapping the detected item to a weight class.
 - **Dispatch and tracking:** the trip is simulated and fast-forwarded (about 25 seconds). Job requests for drivers come from a fixed list; there is no server matching customers to drivers yet.
 - **Driver onboarding:** document uploads and the background check are simulated, and approval is instant.

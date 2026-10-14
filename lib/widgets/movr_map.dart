@@ -5,8 +5,8 @@ import 'package:latlong2/latlong.dart';
 import '../services/routing.dart';
 import '../theme.dart';
 
-/// A real street map (OpenStreetMap data, CARTO's light style, which suits
-/// the design guide's grey backgrounds). It opens fitted to [fit], keeping
+/// A real street map (OpenStreetMap tiles, softened towards grey to suit the
+/// design guide). It opens fitted to [fit], keeping
 /// clear of the screen area covered by UI ([padding]); people can pan and
 /// zoom. [layers] are flutter_map layers drawn on top (routes, markers).
 ///
@@ -44,11 +44,12 @@ class MovrMap extends StatelessWidget {
       ),
       children: [
         TileLayer(
-          urlTemplate:
-              'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-          subdomains: const ['a', 'b', 'c', 'd'],
-          retinaMode: RetinaMode.isHighDensity(context),
+          // Standard OpenStreetMap tiles: free, no key. Softened to grey so
+          // the orange and black UI stands out, per the design guide.
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.movr.movr',
+          tileBuilder: (context, tile, _) =>
+              ColorFiltered(colorFilter: _softGrey, child: tile),
         ),
         ...layers,
         _Attribution(bottom: padding.bottom),
@@ -56,6 +57,30 @@ class MovrMap extends StatelessWidget {
     );
   }
 }
+
+/// Mostly desaturated and slightly lightened.
+const _softGrey = ColorFilter.matrix(<double>[
+  0.45,
+  0.45,
+  0.10,
+  0,
+  18,
+  0.30,
+  0.60,
+  0.10,
+  0,
+  18,
+  0.30,
+  0.45,
+  0.25,
+  0,
+  18,
+  0,
+  0,
+  0,
+  1,
+  0,
+]);
 
 class _Attribution extends StatelessWidget {
   const _Attribution({required this.bottom});
@@ -74,7 +99,7 @@ class _Attribution extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: const Text(
-        '© OpenStreetMap contributors © CARTO',
+        '© OpenStreetMap contributors',
         style: TextStyle(fontSize: 9, color: MovrColors.textMuted),
       ),
     ),
