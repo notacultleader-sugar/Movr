@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/request_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'theme.dart';
 
 void main() => runApp(const MovrApp());
@@ -15,7 +15,7 @@ class MovrApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: buildMovrTheme(),
       builder: (context, child) => _PhoneFrame(child: child!),
-      home: const RequestScreen(),
+      home: const WelcomeScreen(),
     );
   }
 }
@@ -47,7 +47,10 @@ class _PhoneFrame extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(28),
             child: MediaQuery(
-              data: media.copyWith(size: Size(size.width - 16, size.height - 16), padding: EdgeInsets.zero),
+              data: media.copyWith(
+                size: Size(size.width - 16, size.height - 16),
+                padding: EdgeInsets.zero,
+              ),
               child: child,
             ),
           ),

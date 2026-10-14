@@ -16,21 +16,24 @@ class LiveTrucksLayer extends StatefulWidget {
 
 class _Loop {
   _Loop(int x1, int y1, int x2, int y2, this.phase, this.laps)
-      : path = [
-          Offset(kRoadLines[x1], kRoadLines[y1]),
-          Offset(kRoadLines[x2], kRoadLines[y1]),
-          Offset(kRoadLines[x2], kRoadLines[y2]),
-          Offset(kRoadLines[x1], kRoadLines[y2]),
-          Offset(kRoadLines[x1], kRoadLines[y1]),
-        ];
+    : path = [
+        Offset(kRoadLines[x1], kRoadLines[y1]),
+        Offset(kRoadLines[x2], kRoadLines[y1]),
+        Offset(kRoadLines[x2], kRoadLines[y2]),
+        Offset(kRoadLines[x1], kRoadLines[y2]),
+        Offset(kRoadLines[x1], kRoadLines[y1]),
+      ];
   final List<Offset> path;
   final double phase;
   final int laps; // laps per animation cycle; sets the truck's speed
 }
 
-class _LiveTrucksLayerState extends State<LiveTrucksLayer> with SingleTickerProviderStateMixin {
-  late final AnimationController _clock =
-      AnimationController(vsync: this, duration: const Duration(seconds: 90))..repeat();
+class _LiveTrucksLayerState extends State<LiveTrucksLayer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _clock = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 90),
+  )..repeat();
 
   static final _loops = [
     _Loop(1, 1, 3, 2, 0.0, 3),
@@ -53,11 +56,8 @@ class _LiveTrucksLayerState extends State<LiveTrucksLayer> with SingleTickerProv
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _clock,
-      builder: (context, _) => Stack(
-        children: [
-          for (final loop in _loops) _truck(loop),
-        ],
-      ),
+      builder: (context, _) =>
+          Stack(children: [for (final loop in _loops) _truck(loop)]),
     );
   }
 

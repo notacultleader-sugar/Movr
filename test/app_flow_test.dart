@@ -1,33 +1,11 @@
-import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movr/main.dart';
 
-/// Load the real app fonts so text measures as it does on device; the
-/// default test font is wider and would report false overflows.
-Future<void> _loadFonts() async {
-  const families = {
-    'Montserrat': ['SemiBold', 'Bold', 'ExtraBold'],
-    'Inter': ['Regular', 'Medium', 'SemiBold', 'Bold'],
-  };
-  for (final entry in families.entries) {
-    final loader = FontLoader(entry.key);
-    for (final weight in entry.value) {
-      loader.addFont(rootBundle.load('assets/fonts/${entry.key}-$weight.ttf'));
-    }
-    await loader.load();
-  }
-}
-
-/// The home map animates forever, so pumpAndSettle never settles. Pump
-/// long enough for sheets and page transitions to finish instead.
-Future<void> settle(WidgetTester tester) async {
-  for (var i = 0; i < 10; i++) {
-    await tester.pump(const Duration(milliseconds: 100));
-  }
-}
+import 'test_helpers.dart';
 
 void main() {
-  setUpAll(_loadFonts);
+  setUpAll(loadAppFonts);
 
   testWidgets('Request → Quote → Active move → Completion', (tester) async {
     tester.view.physicalSize = const Size(412, 892);
@@ -35,6 +13,8 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(const MovrApp());
+    await tester.tap(find.text('I need a move'));
+    await settle(tester);
     expect(find.text('Where are we moving to?'), findsOneWidget);
 
     // Stage 1: Recent fills the drop-off, then get a quote.

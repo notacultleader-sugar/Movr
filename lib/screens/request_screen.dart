@@ -6,6 +6,7 @@ import '../theme.dart';
 import '../widgets/city_map.dart';
 import '../widgets/common.dart';
 import '../widgets/live_trucks.dart';
+import 'driver/driver_home_screen.dart';
 import 'plan_move_sheet.dart';
 import 'quote_screen.dart';
 
@@ -14,10 +15,21 @@ import 'quote_screen.dart';
 class RequestScreen extends StatelessWidget {
   const RequestScreen({super.key});
 
-  Future<void> _plan(BuildContext context, {Place? pickup, Place? dropoff, List<MoveItem> items = const []}) async {
-    final plan = await showPlanMoveSheet(context, pickup: pickup, dropoff: dropoff, items: items);
+  Future<void> _plan(
+    BuildContext context, {
+    Place? pickup,
+    Place? dropoff,
+    List<MoveItem> items = const [],
+  }) async {
+    final plan = await showPlanMoveSheet(
+      context,
+      pickup: pickup,
+      dropoff: dropoff,
+      items: items,
+    );
     if (plan == null || !context.mounted) return;
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => QuoteScreen(plan: plan)));
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => QuoteScreen(plan: plan)));
   }
 
   Future<void> _marketplace(BuildContext context) async {
@@ -39,6 +51,45 @@ class RequestScreen extends StatelessWidget {
     if (store != null && context.mounted) _plan(context, pickup: store.place);
   }
 
+  void _profile(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.credit_card),
+                title: Text('Visa ****4242'),
+                subtitle: Text('Payment method'),
+              ),
+              const ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.receipt_long_outlined),
+                title: Text('3 past moves'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.local_shipping),
+                label: const Text('Switch to driver mode'),
+                onPressed: () {
+                  Navigator.pop(sheet);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const DriverHomeScreen()),
+                    (_) => false,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,7 +99,12 @@ class RequestScreen extends StatelessWidget {
             child: CityMap(
               focus: const Rect.fromLTWH(170, 170, 660, 720),
               overlays: (p) => [
-                MapMarker(projection: p, at: currentLocation.mapPos, size: 26, child: const _YouAreHere()),
+                MapMarker(
+                  projection: p,
+                  at: currentLocation.mapPos,
+                  size: 26,
+                  child: const _YouAreHere(),
+                ),
                 LiveTrucksLayer(projection: p),
               ],
             ),
@@ -61,7 +117,10 @@ class RequestScreen extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: MovrColors.surface,
                           borderRadius: kBorderRadius,
@@ -78,7 +137,7 @@ class RequestScreen extends StatelessWidget {
                         child: IconButton(
                           tooltip: 'Profile',
                           icon: const Icon(Icons.person_outline),
-                          onPressed: () => showDemoNote(context, 'Profile: Visa ****4242 · 3 past moves (demo)'),
+                          onPressed: () => _profile(context),
                         ),
                       ),
                     ],
@@ -87,14 +146,32 @@ class RequestScreen extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(color: MovrColors.black, borderRadius: BorderRadius.circular(12)),
-                      child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                        CircleAvatar(radius: 4, backgroundColor: MovrColors.orange),
-                        SizedBox(width: 8),
-                        Text('$liveTruckCount trucks nearby · 4 min away',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
-                      ]),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: MovrColors.black,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircleAvatar(
+                            radius: 4,
+                            backgroundColor: MovrColors.orange,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            '$liveTruckCount trucks nearby · 4 min away',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const Spacer(),
@@ -128,13 +205,28 @@ class RequestScreen extends StatelessWidget {
                       borderRadius: kBorderRadius,
                       onTap: () => _plan(context),
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-                        child: Row(children: [
-                          Icon(Icons.search, color: MovrColors.orange, size: 26),
-                          SizedBox(width: 12),
-                          Text('Where are we moving to?',
-                              style: TextStyle(fontFamily: kHeadingFont, fontWeight: FontWeight.w700, fontSize: 17)),
-                        ]),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.search,
+                              color: MovrColors.orange,
+                              size: 26,
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Where are we moving to?',
+                              style: TextStyle(
+                                fontFamily: kHeadingFont,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -152,25 +244,29 @@ class _YouAreHere extends StatelessWidget {
   const _YouAreHere();
   @override
   Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: MovrColors.orange.withValues(alpha: 0.25),
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: MovrColors.orange,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2.5),
-          ),
-        ),
-      );
+    decoration: BoxDecoration(
+      color: MovrColors.orange.withValues(alpha: 0.25),
+      shape: BoxShape.circle,
+    ),
+    alignment: Alignment.center,
+    child: Container(
+      width: 14,
+      height: 14,
+      decoration: BoxDecoration(
+        color: MovrColors.orange,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2.5),
+      ),
+    ),
+  );
 }
 
 class _QuickAction extends StatelessWidget {
-  const _QuickAction({required this.icon, required this.label, required this.onTap});
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
   final IconData icon;
   final String label;
   final VoidCallback onTap;
@@ -198,7 +294,10 @@ class _QuickAction extends StatelessWidget {
               color: MovrColors.surface.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+            ),
           ),
         ],
       ),
@@ -214,21 +313,30 @@ class _MarketplaceSheet extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.viewInsetsOf(context).bottom),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          0,
+          20,
+          20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Pick up a Marketplace find', style: text.headlineSmall),
             const SizedBox(height: 4),
-            Text('Paste a Facebook Marketplace or Craigslist link and we fill in the pickup.', style: text.bodySmall),
+            Text(
+              'Paste a Facebook Marketplace or Craigslist link and we fill in the pickup.',
+              style: text.bodySmall,
+            ),
             const SizedBox(height: 16),
             TextField(
               decoration: const InputDecoration(
                 hintText: 'Paste listing link',
                 prefixIcon: Icon(Icons.link),
               ),
-              onSubmitted: (_) => Navigator.pop(context, marketplaceListings.first),
+              onSubmitted: (_) =>
+                  Navigator.pop(context, marketplaceListings.first),
             ),
             const SizedBox(height: 16),
             Text('Saved listings', style: text.titleLarge),
@@ -239,7 +347,10 @@ class _MarketplaceSheet extends StatelessWidget {
                 leading: Container(
                   width: 48,
                   height: 48,
-                  decoration: BoxDecoration(color: MovrColors.orangeTint, borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(
+                    color: MovrColors.orangeTint,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Icon(l.item.icon, color: MovrColors.orange),
                 ),
                 title: Text(l.title, style: text.titleMedium),
@@ -269,7 +380,10 @@ class _StoreSheet extends StatelessWidget {
           children: [
             Text('Partner stores', style: text.headlineSmall),
             const SizedBox(height: 4),
-            Text('Bought something big? We\'ll meet you at the counter.', style: text.bodySmall),
+            Text(
+              'Bought something big? We\'ll meet you at the counter.',
+              style: text.bodySmall,
+            ),
             const SizedBox(height: 12),
             for (final s in partnerStores)
               ListTile(
@@ -277,7 +391,10 @@ class _StoreSheet extends StatelessWidget {
                 leading: Container(
                   width: 48,
                   height: 48,
-                  decoration: BoxDecoration(color: MovrColors.black, borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(
+                    color: MovrColors.black,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: const Icon(Icons.storefront, color: Colors.white),
                 ),
                 title: Text(s.place.name, style: text.titleMedium),

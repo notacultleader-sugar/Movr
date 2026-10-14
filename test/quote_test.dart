@@ -25,4 +25,12 @@ void main() {
     expect(pointAlong(path, 0.5), const Offset(100, 0));
     expect(pointAlong(path, 1), const Offset(100, 100));
   });
+
+  test('Driver keeps 75% of the fare plus 100% of the tip', () {
+    const quote = Quote(vehicle: VehicleTier.haul, items: [sofa], miles: 4.2);
+    const payout = DriverPayout(quote, tip: 10);
+    expect(payout.fare, 52.50); // $62.50 minus the $10 safety fee
+    expect(payout.commission, 13.13);
+    expect(payout.total, closeTo(49.37, 0.001));
+  });
 }

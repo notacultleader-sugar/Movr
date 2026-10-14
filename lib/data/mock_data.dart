@@ -7,7 +7,11 @@ import '../models/move.dart';
 /// (x and y each one of [kRoadLines]).
 const kRoadLines = <double>[90, 240, 390, 530, 680, 830, 950];
 
-const currentLocation = Place('Current location', '1180 Granville St', Offset(390, 530));
+const currentLocation = Place(
+  'Current location',
+  '1180 Granville St',
+  Offset(390, 530),
+);
 
 const recentDropoff = Place('Home', '2450 Cedar Ave, Apt 3B', Offset(830, 240));
 
@@ -21,7 +25,13 @@ const suggestedPlaces = <Place>[
 ];
 
 class MarketplaceListing {
-  const MarketplaceListing(this.title, this.source, this.price, this.place, this.item);
+  const MarketplaceListing(
+    this.title,
+    this.source,
+    this.price,
+    this.place,
+    this.item,
+  );
   final String title;
   final String source;
   final String price;
@@ -39,17 +49,46 @@ const fridge = MoveItem('Refrigerator', WeightClass.extraHeavy, Icons.kitchen);
 const desk = MoveItem('Desk', WeightClass.medium, Icons.desk);
 
 /// Order the simulated AI scanner "detects" items in.
-const scannableItems = <MoveItem>[sofa, tv, bedFrame, dresser, armchair, boxes, fridge, desk];
+const scannableItems = <MoveItem>[
+  sofa,
+  tv,
+  bedFrame,
+  dresser,
+  armchair,
+  boxes,
+  fridge,
+  desk,
+];
 
 const marketplaceListings = <MarketplaceListing>[
-  MarketplaceListing('Grey sectional sofa, like new', 'Facebook Marketplace', '\$350',
-      Place('Seller: Jenna R.', '742 Oak St', Offset(240, 390)), sofa),
-  MarketplaceListing('Solid wood dresser, 6 drawers', 'Craigslist', '\$120',
-      Place('Seller: Dan K.', '1290 Pine Ave', Offset(530, 680)), dresser),
-  MarketplaceListing('Samsung 55" smart TV', 'Facebook Marketplace', '\$200',
-      Place('Seller: Alex M.', '55 Harbour Rd', Offset(680, 830)), tv),
-  MarketplaceListing('Mid-century armchair', 'Craigslist', '\$90',
-      Place('Seller: Sam T.', '9 Elm Lane', Offset(390, 90)), armchair),
+  MarketplaceListing(
+    'Grey sectional sofa, like new',
+    'Facebook Marketplace',
+    '\$350',
+    Place('Seller: Jenna R.', '742 Oak St', Offset(240, 390)),
+    sofa,
+  ),
+  MarketplaceListing(
+    'Solid wood dresser, 6 drawers',
+    'Craigslist',
+    '\$120',
+    Place('Seller: Dan K.', '1290 Pine Ave', Offset(530, 680)),
+    dresser,
+  ),
+  MarketplaceListing(
+    'Samsung 55" smart TV',
+    'Facebook Marketplace',
+    '\$200',
+    Place('Seller: Alex M.', '55 Harbour Rd', Offset(680, 830)),
+    tv,
+  ),
+  MarketplaceListing(
+    'Mid-century armchair',
+    'Craigslist',
+    '\$90',
+    Place('Seller: Sam T.', '9 Elm Lane', Offset(390, 90)),
+    armchair,
+  ),
 ];
 
 class PartnerStore {
@@ -59,12 +98,18 @@ class PartnerStore {
 }
 
 const partnerStores = <PartnerStore>[
-  PartnerStore(Place('Second Chance Thrift', '210 Market St', Offset(530, 390)),
-      'Furniture & home goods · Partner since 2026'),
-  PartnerStore(Place('Oak & Ember Vintage', '48 Commercial Dr', Offset(240, 680)),
-      'Mid-century furniture'),
-  PartnerStore(Place('The Furniture Exchange', '1500 Main St', Offset(830, 530)),
-      'Consignment sofas, beds, tables'),
+  PartnerStore(
+    Place('Second Chance Thrift', '210 Market St', Offset(530, 390)),
+    'Furniture & home goods · Partner since 2026',
+  ),
+  PartnerStore(
+    Place('Oak & Ember Vintage', '48 Commercial Dr', Offset(240, 680)),
+    'Mid-century furniture',
+  ),
+  PartnerStore(
+    Place('The Furniture Exchange', '1500 Main St', Offset(830, 530)),
+    'Consignment sofas, beds, tables',
+  ),
 ];
 
 const drivers = <VehicleTier, Driver>{
@@ -86,12 +131,18 @@ const drivers = <VehicleTier, Driver>{
 
 /// Intersections a matched driver might be waiting at.
 const _driverSpots = <Offset>[
-  Offset(90, 90), Offset(950, 90), Offset(90, 950), Offset(950, 950), Offset(530, 90), Offset(90, 530),
+  Offset(90, 90),
+  Offset(950, 90),
+  Offset(90, 950),
+  Offset(950, 950),
+  Offset(530, 90),
+  Offset(90, 530),
 ];
 
 /// Where the assigned driver starts: a spot roughly "4 minutes" (about 450
 /// map units by road) from the pickup.
 Offset driverStartFor(Offset pickup) {
-  double score(Offset s) => ((s.dx - pickup.dx).abs() + (s.dy - pickup.dy).abs() - 450).abs();
+  double score(Offset s) =>
+      ((s.dx - pickup.dx).abs() + (s.dy - pickup.dy).abs() - 450).abs();
   return _driverSpots.reduce((a, b) => score(a) <= score(b) ? a : b);
 }

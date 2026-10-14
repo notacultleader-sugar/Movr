@@ -19,8 +19,10 @@ class MapProjection {
   late final Offset _screenCenter;
   late final Offset _worldCenter;
 
-  Offset toScreen(Offset world) => _screenCenter + (world - _worldCenter) * scale;
-  Offset toWorld(Offset screen) => _worldCenter + (screen - _screenCenter) / scale;
+  Offset toScreen(Offset world) =>
+      _screenCenter + (world - _worldCenter) * scale;
+  Offset toWorld(Offset screen) =>
+      _worldCenter + (screen - _screenCenter) / scale;
 }
 
 /// A stylised, self-drawn city map. It stands in for Google Maps in the
@@ -39,19 +41,23 @@ class CityMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final size = constraints.biggest;
-      final projection = MapProjection(size, focus, padding);
-      return ClipRect(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            RepaintBoundary(child: CustomPaint(painter: _CityPainter(projection))),
-            ...?overlays?.call(projection),
-          ],
-        ),
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.biggest;
+        final projection = MapProjection(size, focus, padding);
+        return ClipRect(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              RepaintBoundary(
+                child: CustomPaint(painter: _CityPainter(projection)),
+              ),
+              ...?overlays?.call(projection),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -77,8 +83,16 @@ class _CityPainter extends CustomPainter {
     // Buildings: small footprints inside each 75-unit block.
     final buildingPaint = Paint()..color = _building;
     const step = 75.0;
-    for (var bx = (visible.left / step).floor() * step; bx < visible.right; bx += step) {
-      for (var by = (visible.top / step).floor() * step; by < visible.bottom; by += step) {
+    for (
+      var bx = (visible.left / step).floor() * step;
+      bx < visible.right;
+      bx += step
+    ) {
+      for (
+        var by = (visible.top / step).floor() * step;
+        by < visible.bottom;
+        by += step
+      ) {
         final r = math.Random((bx * 31 + by * 17).toInt());
         for (var k = 0; k < 2; k++) {
           final w = 18 + r.nextDouble() * 22;
@@ -124,7 +138,11 @@ class _CityPainter extends CustomPainter {
       ..color = _majorRoad
       ..strokeWidth = 13 * p.scale
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(p.toScreen(const Offset(390, 1100)), p.toScreen(const Offset(1100, 390)), avenue);
+    canvas.drawLine(
+      p.toScreen(const Offset(390, 1100)),
+      p.toScreen(const Offset(1100, 390)),
+      avenue,
+    );
   }
 
   Matrix4 get _matrix {
@@ -137,10 +155,22 @@ class _CityPainter extends CustomPainter {
   void _rrect(Canvas canvas, Rect world, double radius, Paint paint) {
     final tl = p.toScreen(world.topLeft);
     final br = p.toScreen(world.bottomRight);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromPoints(tl, br), Radius.circular(radius * p.scale)), paint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromPoints(tl, br),
+        Radius.circular(radius * p.scale),
+      ),
+      paint,
+    );
   }
 
-  void _roads(Canvas canvas, List<double> lines, Rect visible, double width, Color color) {
+  void _roads(
+    Canvas canvas,
+    List<double> lines,
+    Rect visible,
+    double width,
+    Color color,
+  ) {
     final paint = Paint()
       ..color = color
       ..strokeWidth = width * p.scale;
@@ -149,11 +179,19 @@ class _CityPainter extends CustomPainter {
       for (final v in lines) {
         final x = v + offset;
         if (x >= visible.left && x <= visible.right) {
-          canvas.drawLine(p.toScreen(Offset(x, visible.top)), p.toScreen(Offset(x, visible.bottom)), paint);
+          canvas.drawLine(
+            p.toScreen(Offset(x, visible.top)),
+            p.toScreen(Offset(x, visible.bottom)),
+            paint,
+          );
         }
         final y = v + offset;
         if (y >= visible.top && y <= visible.bottom) {
-          canvas.drawLine(p.toScreen(Offset(visible.left, y)), p.toScreen(Offset(visible.right, y)), paint);
+          canvas.drawLine(
+            p.toScreen(Offset(visible.left, y)),
+            p.toScreen(Offset(visible.right, y)),
+            paint,
+          );
         }
       }
     }
@@ -161,20 +199,28 @@ class _CityPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CityPainter old) =>
-      old.p.scale != p.scale || old.p.toScreen(Offset.zero) != p.toScreen(Offset.zero);
+      old.p.scale != p.scale ||
+      old.p.toScreen(Offset.zero) != p.toScreen(Offset.zero);
 }
 
 /// Draws a route polyline in world coordinates.
 class RouteLayer extends StatelessWidget {
-  const RouteLayer({super.key, required this.projection, required this.path, this.color = MovrColors.black, this.dashed = false});
+  const RouteLayer({
+    super.key,
+    required this.projection,
+    required this.path,
+    this.color = MovrColors.black,
+    this.dashed = false,
+  });
   final MapProjection projection;
   final List<Offset> path;
   final Color color;
   final bool dashed;
 
   @override
-  Widget build(BuildContext context) =>
-      IgnorePointer(child: CustomPaint(painter: _RoutePainter(projection, path, color, dashed)));
+  Widget build(BuildContext context) => IgnorePointer(
+    child: CustomPaint(painter: _RoutePainter(projection, path, color, dashed)),
+  );
 }
 
 class _RoutePainter extends CustomPainter {
@@ -219,7 +265,14 @@ class _RoutePainter extends CustomPainter {
 
 /// A marker centred on a world position.
 class MapMarker extends StatelessWidget {
-  const MapMarker({super.key, required this.projection, required this.at, required this.child, this.size = 32, this.anchorBottom = false});
+  const MapMarker({
+    super.key,
+    required this.projection,
+    required this.at,
+    required this.child,
+    this.size = 32,
+    this.anchorBottom = false,
+  });
   final MapProjection projection;
   final Offset at;
   final Widget child;
@@ -241,7 +294,11 @@ class MapMarker extends StatelessWidget {
 
 /// Little black truck icon; flips to face its direction of travel.
 class TruckIcon extends StatelessWidget {
-  const TruckIcon({super.key, this.facingLeft = false, this.highlighted = false});
+  const TruckIcon({
+    super.key,
+    this.facingLeft = false,
+    this.highlighted = false,
+  });
   final bool facingLeft;
   final bool highlighted;
 
@@ -251,8 +308,16 @@ class TruckIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: MovrColors.black,
         borderRadius: BorderRadius.circular(9),
-        border: highlighted ? Border.all(color: MovrColors.orange, width: 2.5) : null,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2))],
+        border: highlighted
+            ? Border.all(color: MovrColors.orange, width: 2.5)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       alignment: Alignment.center,
       child: Transform.flip(
@@ -267,23 +332,27 @@ class PickupPin extends StatelessWidget {
   const PickupPin({super.key});
   @override
   Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: MovrColors.black,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          boxShadow: kFloatingShadow,
-        ),
-        child: const Center(child: CircleAvatar(radius: 3.5, backgroundColor: Colors.white)),
-      );
+    decoration: BoxDecoration(
+      color: MovrColors.black,
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.white, width: 3),
+      boxShadow: kFloatingShadow,
+    ),
+    child: const Center(
+      child: CircleAvatar(radius: 3.5, backgroundColor: Colors.white),
+    ),
+  );
 }
 
 class DropoffPin extends StatelessWidget {
   const DropoffPin({super.key});
   @override
   Widget build(BuildContext context) => const Icon(
-        Icons.location_on,
-        color: MovrColors.orange,
-        size: 40,
-        shadows: [Shadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))],
-      );
+    Icons.location_on,
+    color: MovrColors.orange,
+    size: 40,
+    shadows: [
+      Shadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+    ],
+  );
 }

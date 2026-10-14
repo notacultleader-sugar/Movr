@@ -21,12 +21,12 @@ const String kHeadingFont = 'Montserrat';
 const String kBodyFont = 'Inter';
 
 List<BoxShadow> get kFloatingShadow => [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.12),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
-      ),
-    ];
+  BoxShadow(
+    color: Colors.black.withValues(alpha: 0.12),
+    blurRadius: 18,
+    offset: const Offset(0, 6),
+  ),
+];
 
 ThemeData buildMovrTheme() {
   final base = ThemeData(
@@ -53,15 +53,39 @@ ThemeData buildMovrTheme() {
   return base.copyWith(
     textTheme: base.textTheme.copyWith(
       headlineLarge: const TextStyle(
-          fontFamily: kHeadingFont, fontWeight: FontWeight.w800, fontSize: 30, color: MovrColors.black),
+        fontFamily: kHeadingFont,
+        fontWeight: FontWeight.w800,
+        fontSize: 30,
+        color: MovrColors.black,
+      ),
       headlineSmall: const TextStyle(
-          fontFamily: kHeadingFont, fontWeight: FontWeight.w800, fontSize: 22, color: MovrColors.black),
+        fontFamily: kHeadingFont,
+        fontWeight: FontWeight.w800,
+        fontSize: 22,
+        color: MovrColors.black,
+      ),
       titleLarge: const TextStyle(
-          fontFamily: kHeadingFont, fontWeight: FontWeight.w700, fontSize: 18, color: MovrColors.black),
+        fontFamily: kHeadingFont,
+        fontWeight: FontWeight.w700,
+        fontSize: 18,
+        color: MovrColors.black,
+      ),
       titleMedium: const TextStyle(
-          fontFamily: kBodyFont, fontWeight: FontWeight.w600, fontSize: 16, color: MovrColors.black),
-      bodyMedium: const TextStyle(fontFamily: kBodyFont, fontSize: 14, color: MovrColors.black),
-      bodySmall: const TextStyle(fontFamily: kBodyFont, fontSize: 12, color: MovrColors.textMuted),
+        fontFamily: kBodyFont,
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+        color: MovrColors.black,
+      ),
+      bodyMedium: const TextStyle(
+        fontFamily: kBodyFont,
+        fontSize: 14,
+        color: MovrColors.black,
+      ),
+      bodySmall: const TextStyle(
+        fontFamily: kBodyFont,
+        fontSize: 12,
+        color: MovrColors.textMuted,
+      ),
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: MovrColors.background,
@@ -70,7 +94,11 @@ ThemeData buildMovrTheme() {
       scrolledUnderElevation: 0,
       centerTitle: true,
       titleTextStyle: TextStyle(
-          fontFamily: kHeadingFont, fontWeight: FontWeight.w700, fontSize: 18, color: MovrColors.black),
+        fontFamily: kHeadingFont,
+        fontWeight: FontWeight.w700,
+        fontSize: 18,
+        color: MovrColors.black,
+      ),
     ),
     cardTheme: CardThemeData(
       color: MovrColors.surface,
@@ -102,12 +130,18 @@ ThemeData buildMovrTheme() {
       side: const BorderSide(color: MovrColors.line),
       backgroundColor: MovrColors.surface,
       selectedColor: MovrColors.orange,
-      labelStyle: const TextStyle(fontFamily: kBodyFont, fontWeight: FontWeight.w600, fontSize: 13),
+      labelStyle: const TextStyle(
+        fontFamily: kBodyFont,
+        fontWeight: FontWeight.w600,
+        fontSize: 13,
+      ),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: MovrColors.surface,
       showDragHandle: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
@@ -117,7 +151,10 @@ ThemeData buildMovrTheme() {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: MovrColors.background,
-      border: OutlineInputBorder(borderRadius: kBorderRadius, borderSide: BorderSide.none),
+      border: OutlineInputBorder(
+        borderRadius: kBorderRadius,
+        borderSide: BorderSide.none,
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
   );

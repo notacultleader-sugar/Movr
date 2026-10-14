@@ -36,9 +36,14 @@ class _QuoteScreenState extends State<QuoteScreen> {
 
   Future<void> _scan() async {
     final item = await Navigator.of(context).push<MoveItem>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => ScannerScreen(skip: _quote.items.length)),
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => ScannerScreen(skip: _quote.items.length),
+      ),
     );
-    if (item != null) setState(() => _quote = _quote.copyWith(items: [..._quote.items, item]));
+    if (item != null) {
+      setState(() => _quote = _quote.copyWith(items: [..._quote.items, item]));
+    }
   }
 
   Future<void> _addManually() async {
@@ -49,13 +54,18 @@ class _QuoteScreenState extends State<QuoteScreen> {
           shrinkWrap: true,
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           children: [
-            Text('Add an item', style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              'Add an item',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             for (final i in scannableItems)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(i.icon),
                 title: Text(i.name),
-                subtitle: Text('${i.weightClass.label} · ${i.weightClass.range}'),
+                subtitle: Text(
+                  '${i.weightClass.label} · ${i.weightClass.range}',
+                ),
                 trailing: Text('+${money(i.weightClass.surcharge)}'),
                 onTap: () => Navigator.pop(context, i),
               ),
@@ -63,7 +73,9 @@ class _QuoteScreenState extends State<QuoteScreen> {
         ),
       ),
     );
-    if (item != null) setState(() => _quote = _quote.copyWith(items: [..._quote.items, item]));
+    if (item != null) {
+      setState(() => _quote = _quote.copyWith(items: [..._quote.items, item]));
+    }
   }
 
   Future<void> _book() async {
@@ -106,8 +118,12 @@ class _QuoteScreenState extends State<QuoteScreen> {
               pickup: widget.plan.pickup.name == currentLocation.name
                   ? currentLocation.address
                   : '${widget.plan.pickup.name}, ${widget.plan.pickup.address}',
-              dropoff: '${widget.plan.dropoff.name}, ${widget.plan.dropoff.address}',
-              trailing: Text('${_quote.miles.toStringAsFixed(1)} mi', style: text.bodySmall),
+              dropoff:
+                  '${widget.plan.dropoff.name}, ${widget.plan.dropoff.address}',
+              trailing: Text(
+                '${_quote.miles.toStringAsFixed(1)} mi',
+                style: text.bodySmall,
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -150,19 +166,25 @@ class _QuoteScreenState extends State<QuoteScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          Row(children: [
-            Text('2. Vehicle', style: text.titleLarge),
-            const Spacer(),
-            if (_vanRecommended && _quote.vehicle != VehicleTier.van)
-              Text('Van recommended for this load', style: text.bodySmall?.copyWith(color: MovrColors.orange)),
-          ]),
+          Row(
+            children: [
+              Text('2. Vehicle', style: text.titleLarge),
+              const Spacer(),
+              if (_vanRecommended && _quote.vehicle != VehicleTier.van)
+                Text(
+                  'Van recommended for this load',
+                  style: text.bodySmall?.copyWith(color: MovrColors.orange),
+                ),
+            ],
+          ),
           const SizedBox(height: 10),
           SizedBox(
             height: 160,
             child: Row(
               children: [
                 for (final tier in VehicleTier.values) ...[
-                  if (tier != VehicleTier.values.first) const SizedBox(width: 12),
+                  if (tier != VehicleTier.values.first)
+                    const SizedBox(width: 12),
                   Expanded(
                     child: _VehicleCard(
                       tier: tier,
@@ -180,16 +202,26 @@ class _QuoteScreenState extends State<QuoteScreen> {
           const SizedBox(height: 16),
           InkWell(
             onTap: () => setState(() => _showBreakdown = !_showBreakdown),
-            child: Row(children: [
-              Text('Price breakdown', style: text.bodySmall),
-              Icon(_showBreakdown ? Icons.expand_less : Icons.expand_more, size: 18, color: MovrColors.textMuted),
-            ]),
+            child: Row(
+              children: [
+                Text('Price breakdown', style: text.bodySmall),
+                Icon(
+                  _showBreakdown ? Icons.expand_less : Icons.expand_more,
+                  size: 18,
+                  color: MovrColors.textMuted,
+                ),
+              ],
+            ),
           ),
           if (_showBreakdown) ...[
             const SizedBox(height: 8),
-            _line('${_quote.vehicle.name} base (first ${Quote.includedMiles.toInt()} mi)', _quote.basePrice),
+            _line(
+              '${_quote.vehicle.name} base (first ${Quote.includedMiles.toInt()} mi)',
+              _quote.basePrice,
+            ),
             _line('Item handling (${_quote.items.length})', _quote.itemsFee),
-            if (_quote.distanceFee > 0) _line('Extra distance', _quote.distanceFee),
+            if (_quote.distanceFee > 0)
+              _line('Extra distance', _quote.distanceFee),
             _line('Safety fee (insurance + checks)', Quote.safetyFee),
           ],
         ],
@@ -211,7 +243,8 @@ class _QuoteScreenState extends State<QuoteScreen> {
                     Text('Total', style: text.bodySmall),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 200),
-                      transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                      transitionBuilder: (child, anim) =>
+                          ScaleTransition(scale: anim, child: child),
                       child: Text(
                         money(_quote.total),
                         key: ValueKey(_quote.total),
@@ -230,7 +263,9 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 width: 150,
                 child: FilledButton(
                   onPressed: _book,
-                  style: FilledButton.styleFrom(backgroundColor: MovrColors.black),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: MovrColors.black,
+                  ),
                   child: const Text('Book move'),
                 ),
               ),
@@ -242,9 +277,14 @@ class _QuoteScreenState extends State<QuoteScreen> {
   }
 
   Widget _line(String label, double amount) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(children: [Expanded(child: Text(label)), Text(money(amount))]),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      children: [
+        Expanded(child: Text(label)),
+        Text(money(amount)),
+      ],
+    ),
+  );
 }
 
 class _ProgressBar extends StatelessWidget {
@@ -277,7 +317,9 @@ class _ProgressBar extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 12,
-                      color: i <= step ? MovrColors.black : MovrColors.textMuted,
+                      color: i <= step
+                          ? MovrColors.black
+                          : MovrColors.textMuted,
                     ),
                   ),
                 ],
@@ -290,7 +332,11 @@ class _ProgressBar extends StatelessWidget {
 }
 
 class _VehicleCard extends StatelessWidget {
-  const _VehicleCard({required this.tier, required this.selected, required this.onTap});
+  const _VehicleCard({
+    required this.tier,
+    required this.selected,
+    required this.onTap,
+  });
   final VehicleTier tier;
   final bool selected;
   final VoidCallback onTap;
@@ -306,23 +352,53 @@ class _VehicleCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? MovrColors.black : MovrColors.surface,
           borderRadius: kBorderRadius,
-          border: Border.all(color: selected ? MovrColors.orange : MovrColors.line, width: 2),
+          border: Border.all(
+            color: selected ? MovrColors.orange : MovrColors.line,
+            width: 2,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Icon(tier == VehicleTier.haul ? Icons.local_shipping : Icons.airport_shuttle, color: fg, size: 28),
-              const Spacer(),
-              if (selected) const Icon(Icons.check_circle, color: MovrColors.orange),
-            ]),
+            Row(
+              children: [
+                Icon(
+                  tier == VehicleTier.haul
+                      ? Icons.local_shipping
+                      : Icons.airport_shuttle,
+                  color: fg,
+                  size: 28,
+                ),
+                const Spacer(),
+                if (selected)
+                  const Icon(Icons.check_circle, color: MovrColors.orange),
+              ],
+            ),
             const Spacer(),
-            Text(tier.name,
-                style: TextStyle(fontFamily: kHeadingFont, fontWeight: FontWeight.w800, fontSize: 20, color: fg)),
-            Text('${tier.vehicleType} · ${money(tier.basePrice).replaceAll('.00', '')} base',
-                style: const TextStyle(color: MovrColors.orange, fontWeight: FontWeight.w700)),
+            Text(
+              tier.name,
+              style: TextStyle(
+                fontFamily: kHeadingFont,
+                fontWeight: FontWeight.w800,
+                fontSize: 20,
+                color: fg,
+              ),
+            ),
+            Text(
+              '${tier.vehicleType} · ${money(tier.basePrice).replaceAll('.00', '')} base',
+              style: const TextStyle(
+                color: MovrColors.orange,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(tier.tagline, style: TextStyle(fontSize: 12, color: selected ? Colors.white70 : MovrColors.textMuted)),
+            Text(
+              tier.tagline,
+              style: TextStyle(
+                fontSize: 12,
+                color: selected ? Colors.white70 : MovrColors.textMuted,
+              ),
+            ),
           ],
         ),
       ),
@@ -364,18 +440,26 @@ class _FindingDriverDialogState extends State<_FindingDriverDialog> {
             SizedBox(
               height: 56,
               child: _found
-                  ? const Icon(Icons.check_circle, color: MovrColors.orange, size: 56)
+                  ? const Icon(
+                      Icons.check_circle,
+                      color: MovrColors.orange,
+                      size: 56,
+                    )
                   : const CircularProgressIndicator(color: MovrColors.orange),
             ),
             const SizedBox(height: 16),
             Text(
-              _found ? '${widget.driver.name} accepted!' : 'Finding the nearest truck…',
+              _found
+                  ? '${widget.driver.name} accepted!'
+                  : 'Finding the nearest truck…',
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
-              _found ? '${widget.driver.vehicle} · 4 min away' : 'Matching you by GPS',
+              _found
+                  ? '${widget.driver.vehicle} · 4 min away'
+                  : 'Matching you by GPS',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],

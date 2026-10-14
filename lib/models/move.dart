@@ -49,7 +49,11 @@ class Place {
 ///   tier base price + per-item weight surcharge + extra-mile fee + safety fee.
 /// The first [includedMiles] are in the base price.
 class Quote {
-  const Quote({required this.vehicle, required this.items, required this.miles});
+  const Quote({
+    required this.vehicle,
+    required this.items,
+    required this.miles,
+  });
 
   static const double safetyFee = 10.00;
   static const double includedMiles = 5;
@@ -60,12 +64,16 @@ class Quote {
   final double miles;
 
   double get basePrice => vehicle.basePrice;
-  double get itemsFee => items.fold(0.0, (sum, i) => sum + i.weightClass.surcharge);
+  double get itemsFee =>
+      items.fold(0.0, (sum, i) => sum + i.weightClass.surcharge);
   double get distanceFee => math.max(0, miles - includedMiles) * perExtraMile;
   double get total => basePrice + itemsFee + distanceFee + safetyFee;
 
-  Quote copyWith({VehicleTier? vehicle, List<MoveItem>? items}) =>
-      Quote(vehicle: vehicle ?? this.vehicle, items: items ?? this.items, miles: miles);
+  Quote copyWith({VehicleTier? vehicle, List<MoveItem>? items}) => Quote(
+    vehicle: vehicle ?? this.vehicle,
+    items: items ?? this.items,
+    miles: miles,
+  );
 }
 
 class Driver {
@@ -126,7 +134,8 @@ Offset pointAlong(List<Offset> path, double t) {
   for (var i = 1; i < path.length; i++) {
     final seg = path[i] - path[i - 1];
     if (remaining <= seg.distance) {
-      return path[i - 1] + seg * (seg.distance == 0 ? 0 : remaining / seg.distance);
+      return path[i - 1] +
+          seg * (seg.distance == 0 ? 0 : remaining / seg.distance);
     }
     remaining -= seg.distance;
   }
@@ -134,3 +143,19 @@ Offset pointAlong(List<Offset> path, double t) {
 }
 
 String money(double v) => '\$${v.toStringAsFixed(2)}';
+
+/// What a driver earns from one move. The platform keeps [commissionRate] of
+/// the fare; the safety fee covers insurance and checks; tips go 100% to the
+/// driver.
+class DriverPayout {
+  const DriverPayout(this.quote, {this.tip = 0});
+
+  static const double commissionRate = 0.25;
+
+  final Quote quote;
+  final double tip;
+
+  double get fare => quote.total - Quote.safetyFee;
+  double get commission => (fare * commissionRate * 100).round() / 100;
+  double get total => fare - commission + tip;
+}
