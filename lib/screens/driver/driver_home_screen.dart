@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../data/driver_data.dart';
 import '../../models/move.dart';
 import '../../theme.dart';
-import '../../widgets/city_map.dart';
 import '../../widgets/common.dart';
+import '../../widgets/movr_map.dart';
 import '../request_screen.dart';
 import 'driver_job_screen.dart';
 import 'earnings_screen.dart';
@@ -23,7 +25,7 @@ class DriverHomeScreen extends StatefulWidget {
 }
 
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
-  static const _position = Offset(390, 530);
+  static const _position = driverHomeSpot;
   static const _offerSeconds = 15;
 
   bool _online = false;
@@ -122,6 +124,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
+  Widget _truckLayer() => MarkerLayer(
+    markers: [mapMarker(_position, TruckIcon(highlighted: _online), size: 38)],
+  );
+
   void _openEarnings() =>
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => const EarningsScreen()));
@@ -133,49 +139,57 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: CityMap(
-              focus: const Rect.fromLTWH(140, 200, 560, 640),
-              overlays: (p) => [
-                if (offer != null) ...[
-                  Positioned.fill(
-                    child: RouteLayer(
-                      projection: p,
-                      path: roadRoute(_position, offer.pickup.mapPos),
-                      color: MovrColors.orange,
-                      dashed: true,
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: RouteLayer(
-                      projection: p,
-                      path: roadRoute(
-                        offer.pickup.mapPos,
-                        offer.dropoff.mapPos,
+            child: offer == null
+                ? MovrMap(
+                    key: const ValueKey('idle'),
+                    fit: [
+                      _position,
+                      const LatLng(48.7900, -123.7230),
+                      const LatLng(48.7650, -123.6950),
+                    ],
+                    padding: const EdgeInsets.only(top: 90, bottom: 200),
+                    layers: [_truckLayer()],
+                  )
+                : RouteBuilder(
+                    key: ValueKey(offer),
+                    legs: [
+                      (_position, offer.pickup.pos),
+                      (offer.pickup.pos, offer.dropoff.pos),
+                    ],
+                    builder: (context, routes, _) => MovrMap(
+                      fit: [_position, offer.pickup.pos, offer.dropoff.pos],
+                      padding: const EdgeInsets.only(
+                        top: 90,
+                        bottom: 300,
+                        left: 16,
+                        right: 16,
                       ),
+                      layers: [
+                        routeLayer(routes[1]),
+                        routeLayer(
+                          routes[0],
+                          color: MovrColors.orange,
+                          dashed: true,
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            mapMarker(
+                              offer.pickup.pos,
+                              const PickupPin(),
+                              size: 24,
+                            ),
+                            mapMarker(
+                              offer.dropoff.pos,
+                              const DropoffPin(),
+                              size: 40,
+                              anchorBottom: true,
+                            ),
+                          ],
+                        ),
+                        _truckLayer(),
+                      ],
                     ),
                   ),
-                  MapMarker(
-                    projection: p,
-                    at: offer.pickup.mapPos,
-                    size: 24,
-                    child: const PickupPin(),
-                  ),
-                  MapMarker(
-                    projection: p,
-                    at: offer.dropoff.mapPos,
-                    size: 40,
-                    anchorBottom: true,
-                    child: const DropoffPin(),
-                  ),
-                ],
-                MapMarker(
-                  projection: p,
-                  at: _position,
-                  size: 38,
-                  child: TruckIcon(highlighted: _online),
-                ),
-              ],
-            ),
           ),
           Positioned(
             top: 0,

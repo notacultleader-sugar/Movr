@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../data/mock_data.dart';
 import '../models/move.dart';
 import '../theme.dart';
-import '../widgets/city_map.dart';
 import '../widgets/common.dart';
 import '../widgets/live_trucks.dart';
+import '../widgets/movr_map.dart';
 import 'driver/driver_home_screen.dart';
 import 'plan_move_sheet.dart';
 import 'quote_screen.dart';
@@ -96,16 +98,24 @@ class RequestScreen extends StatelessWidget {
       body: Stack(
         children: [
           Positioned.fill(
-            child: CityMap(
-              focus: const Rect.fromLTWH(170, 170, 660, 720),
-              overlays: (p) => [
-                MapMarker(
-                  projection: p,
-                  at: currentLocation.mapPos,
-                  size: 26,
-                  child: const _YouAreHere(),
+            child: MovrMap(
+              fit: [
+                currentLocation.pos,
+                const LatLng(48.7930, -123.7230),
+                const LatLng(48.7660, -123.6930),
+              ],
+              padding: const EdgeInsets.only(top: 120, bottom: 220),
+              layers: [
+                const LiveTrucksLayer(),
+                MarkerLayer(
+                  markers: [
+                    mapMarker(
+                      currentLocation.pos,
+                      const _YouAreHere(),
+                      size: 26,
+                    ),
+                  ],
                 ),
-                LiveTrucksLayer(projection: p),
               ],
             ),
           ),

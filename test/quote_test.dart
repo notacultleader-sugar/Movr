@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:movr/data/mock_data.dart';
 import 'package:movr/models/move.dart';
 
@@ -20,10 +21,16 @@ void main() {
   });
 
   test('pointAlong walks the route by distance', () {
-    final path = roadRoute(const Offset(0, 0), const Offset(100, 100));
-    expect(pointAlong(path, 0), const Offset(0, 0));
-    expect(pointAlong(path, 0.5), const Offset(100, 0));
-    expect(pointAlong(path, 1), const Offset(100, 100));
+    const a = LatLng(48.77, -123.71), b = LatLng(48.77, -123.69);
+    const c = LatLng(48.79, -123.69);
+    final path = [a, b, c];
+    expect(pointAlong(path, 0), a);
+    expect(pointAlong(path, 1), c);
+    // The first leg is shorter than the second, so halfway is past b.
+    final mid = pointAlong(path, 0.5);
+    expect(mid.longitude, closeTo(-123.69, 1e-6));
+    expect(mid.latitude, greaterThan(48.77));
+    expect(routeMiles(a, b), closeTo(1.2, 0.2));
   });
 
   test('Driver keeps 75% of the fare plus 100% of the tip', () {

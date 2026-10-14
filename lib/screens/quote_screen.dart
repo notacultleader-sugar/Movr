@@ -22,7 +22,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
   late Quote _quote = Quote(
     vehicle: VehicleTier.haul,
     items: List.of(widget.plan.items),
-    miles: routeMiles(widget.plan.pickup.mapPos, widget.plan.dropoff.mapPos),
+    miles: routeMiles(widget.plan.pickup.pos, widget.plan.dropoff.pos),
   );
   bool _vehicleChosen = false;
   bool _showBreakdown = false;
@@ -95,7 +95,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
             dropoff: widget.plan.dropoff,
             quote: _quote,
             driver: driver,
-            driverStart: driverStartFor(widget.plan.pickup.mapPos),
+            driverStart: driverStartFor(widget.plan.pickup.pos),
           ),
         ),
       ),

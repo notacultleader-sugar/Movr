@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../models/move.dart';
 import 'mock_data.dart';
@@ -24,7 +25,7 @@ class JobRequest {
   Quote get quote => Quote(
     vehicle: vehicle,
     items: items,
-    miles: routeMiles(pickup.mapPos, dropoff.mapPos),
+    miles: routeMiles(pickup.pos, dropoff.pos),
   );
   DriverPayout get payout => DriverPayout(quote);
 }
@@ -34,27 +35,43 @@ const jobPool = <JobRequest>[
   JobRequest(
     customer: 'Ava',
     customerRating: 4.9,
-    pickup: Place('Second Chance Thrift', '210 Market St', Offset(530, 390)),
-    dropoff: Place('Maple Court Apartments', '615 Maple St', Offset(680, 90)),
+    pickup: Place(
+      'Second Chance Thrift',
+      '210 Government St',
+      LatLng(48.7810, -123.7065),
+    ),
+    dropoff: Place(
+      'Maple Court Apartments',
+      '615 Maple Bay Rd',
+      LatLng(48.7960, -123.6960),
+    ),
     items: [sofa],
     vehicle: VehicleTier.haul,
   ),
   JobRequest(
     customer: 'Ben',
     customerRating: 4.7,
-    pickup: Place('Seller: Dan K.', '1290 Pine Ave', Offset(530, 680)),
-    dropoff: Place('Riverside Lofts', '300 Riverside Dr', Offset(90, 680)),
+    pickup: Place('Seller: Dan K.', '1290 Herd Rd', LatLng(48.8150, -123.7000)),
+    dropoff: Place(
+      'Riverside Lofts',
+      '300 Canada Ave',
+      LatLng(48.7745, -123.7060),
+    ),
     items: [dresser, boxes],
     vehicle: VehicleTier.haul,
   ),
   JobRequest(
     customer: 'Chloe',
     customerRating: 5.0,
-    pickup: Place('The Furniture Exchange', '1500 Main St', Offset(830, 530)),
+    pickup: Place(
+      'The Furniture Exchange',
+      '1500 Cowichan Way',
+      LatLng(48.7700, -123.6990),
+    ),
     dropoff: Place(
       'Storage Hub',
-      '88 Industrial Way, Unit 14',
-      Offset(950, 830),
+      'Unit 14, 6200 Trans-Canada Hwy',
+      LatLng(48.8000, -123.7120),
     ),
     items: [bedFrame, armchair],
     vehicle: VehicleTier.haul,
@@ -146,3 +163,6 @@ class DriverSession extends ChangeNotifier {
 }
 
 final driverSession = DriverSession();
+
+/// Where the demo driver is parked while waiting for jobs (downtown Duncan).
+const driverHomeSpot = LatLng(48.7770, -123.7110);

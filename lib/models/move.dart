@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import 'dart:ui' show Offset;
 
 import 'package:flutter/material.dart' show IconData;
+import 'package:latlong2/latlong.dart';
 
 /// Weight classes the AI scanner assigns to an item. Each adds a handling
 /// surcharge to the quote.
@@ -36,13 +36,12 @@ enum VehicleTier {
   final String tagline;
 }
 
-/// A location on the prototype map. [mapPos] is in the map's 1000x1000
-/// world space and always sits on a road intersection.
+/// A named location on the map.
 class Place {
-  const Place(this.name, this.address, this.mapPos);
+  const Place(this.name, this.address, this.pos);
   final String name;
   final String address;
-  final Offset mapPos;
+  final LatLng pos;
 }
 
 /// Pricing rules for a move:
@@ -106,38 +105,48 @@ class MoveOrder {
   final Place dropoff;
   final Quote quote;
   final Driver driver;
-  final Offset driverStart;
+  final LatLng driverStart;
 }
 
-/// Map world units to miles. A cross-town trip of ~700 units is ~4.2 miles.
-const double kMilesPerMapUnit = 0.006;
+const _distance = Distance();
+const double _metersPerMile = 1609.34;
 
-/// Road route between two intersections: along [a]'s street, then [b]'s.
-List<Offset> roadRoute(Offset a, Offset b) => [a, Offset(b.dx, a.dy), b];
+/// Roads wind, so a straight-line distance is scaled up to estimate the
+/// driving distance until a real route comes back.
+const double _roadFactor = 1.3;
 
-double pathLength(List<Offset> path) {
+double metersBetween(LatLng a, LatLng b) => _distance(a, b);
+
+double pathMeters(List<LatLng> path) {
   var total = 0.0;
   for (var i = 1; i < path.length; i++) {
-    total += (path[i] - path[i - 1]).distance;
+    total += metersBetween(path[i - 1], path[i]);
   }
   return total;
 }
 
-double routeMiles(Offset a, Offset b) =>
-    (pathLength(roadRoute(a, b)) * kMilesPerMapUnit * 10).roundToDouble() / 10;
+/// Estimated driving miles between two places, to one decimal.
+double routeMiles(LatLng a, LatLng b) =>
+    (metersBetween(a, b) * _roadFactor / _metersPerMile * 10).roundToDouble() /
+    10;
 
-/// Point at fraction [t] (0..1) of the way along [path].
-Offset pointAlong(List<Offset> path, double t) {
-  final total = pathLength(path);
+/// Point at fraction [t] (0..1) of the way along [path], by distance.
+LatLng pointAlong(List<LatLng> path, double t) {
+  if (path.length < 2) return path.first;
+  final total = pathMeters(path);
   if (total == 0) return path.first;
   var remaining = t.clamp(0.0, 1.0) * total;
   for (var i = 1; i < path.length; i++) {
-    final seg = path[i] - path[i - 1];
-    if (remaining <= seg.distance) {
-      return path[i - 1] +
-          seg * (seg.distance == 0 ? 0 : remaining / seg.distance);
+    final a = path[i - 1], b = path[i];
+    final seg = metersBetween(a, b);
+    if (remaining <= seg) {
+      final f = seg == 0 ? 0.0 : remaining / seg;
+      return LatLng(
+        a.latitude + (b.latitude - a.latitude) * f,
+        a.longitude + (b.longitude - a.longitude) * f,
+      );
     }
-    remaining -= seg.distance;
+    remaining -= seg;
   }
   return path.last;
 }

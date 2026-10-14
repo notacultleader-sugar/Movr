@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../models/move.dart';
 import '../theme.dart';
-import '../widgets/city_map.dart';
+import '../services/routing.dart';
+import '../widgets/movr_map.dart';
 import 'completion_screen.dart';
 
 enum MovePhase { accepted, enRoute, loading, inTransit, done }
@@ -41,14 +44,36 @@ class _ActiveMoveScreenState extends State<ActiveMoveScreen>
         })
         ..forward();
 
-  late final List<Offset> _approach = roadRoute(
+  // Straight lines until the real road routes arrive (in well under the
+  // two-second "accepted" phase on a normal connection).
+  late List<LatLng> _approach = [
     widget.order.driverStart,
-    widget.order.pickup.mapPos,
-  );
-  late final List<Offset> _delivery = roadRoute(
-    widget.order.pickup.mapPos,
-    widget.order.dropoff.mapPos,
-  );
+    widget.order.pickup.pos,
+  ];
+  late List<LatLng> _delivery = [
+    widget.order.pickup.pos,
+    widget.order.dropoff.pos,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoutes();
+  }
+
+  Future<void> _loadRoutes() async {
+    final o = widget.order;
+    final routes = await Future.wait([
+      Routing.route(o.driverStart, o.pickup.pos),
+      Routing.route(o.pickup.pos, o.dropoff.pos),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _approach = routes[0];
+      _delivery = routes[1];
+    });
+  }
+
   double _sheetExtent = 0.42;
 
   double get _seconds => _trip.value * _total;
@@ -66,18 +91,18 @@ class _ActiveMoveScreenState extends State<ActiveMoveScreen>
   double _legProgress(double start, double length) =>
       ((_seconds - start) / length).clamp(0.0, 1.0);
 
-  Offset get _driverPos => switch (_phase) {
+  LatLng get _driverPos => switch (_phase) {
     MovePhase.accepted => widget.order.driverStart,
     MovePhase.enRoute => pointAlong(
       _approach,
       _legProgress(_accepted, _enRoute),
     ),
-    MovePhase.loading => widget.order.pickup.mapPos,
+    MovePhase.loading => widget.order.pickup.pos,
     MovePhase.inTransit => pointAlong(
       _delivery,
       _legProgress(_accepted + _enRoute + _loading, _inTransit),
     ),
-    MovePhase.done => widget.order.dropoff.mapPos,
+    MovePhase.done => widget.order.dropoff.pos,
   };
 
   int get _minutesAway =>
@@ -96,17 +121,6 @@ class _ActiveMoveScreenState extends State<ActiveMoveScreen>
     super.dispose();
   }
 
-  Rect get _focus {
-    final pts = [
-      widget.order.driverStart,
-      widget.order.pickup.mapPos,
-      widget.order.dropoff.mapPos,
-    ];
-    var r = Rect.fromPoints(pts[0], pts[1]);
-    r = r.expandToInclude(Rect.fromPoints(pts[2], pts[2]));
-    return r.inflate(70);
-  }
-
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
@@ -115,58 +129,58 @@ class _ActiveMoveScreenState extends State<ActiveMoveScreen>
         ? _approach
         : _delivery;
     final ahead = _phase == MovePhase.enRoute
-        ? pointAlong(_approach, _legProgress(_accepted, _enRoute) + 0.01)
+        ? pointAlong(
+            _approach,
+            (_legProgress(_accepted, _enRoute) + 0.01).clamp(0.0, 1.0),
+          )
         : pointAlong(
             _delivery,
-            _legProgress(_accepted + _enRoute + _loading, _inTransit) + 0.01,
+            (_legProgress(_accepted + _enRoute + _loading, _inTransit) + 0.01)
+                .clamp(0.0, 1.0),
           );
 
     return Scaffold(
       body: Stack(
         children: [
           Positioned.fill(
-            child: CityMap(
-              focus: _focus,
+            child: MovrMap(
+              fit: [
+                widget.order.driverStart,
+                widget.order.pickup.pos,
+                widget.order.dropoff.pos,
+              ],
               padding: EdgeInsets.only(
                 top: 90,
                 bottom: height * 0.42,
                 left: 24,
                 right: 24,
               ),
-              overlays: (p) => [
-                Positioned.fill(
-                  child: RouteLayer(projection: p, path: _delivery),
-                ),
+              layers: [
+                routeLayer(_delivery),
                 if (_phase.index <= MovePhase.enRoute.index)
-                  Positioned.fill(
-                    child: RouteLayer(
-                      projection: p,
-                      path: legPath,
-                      color: MovrColors.orange,
-                      dashed: true,
+                  routeLayer(legPath, color: MovrColors.orange, dashed: true),
+                MarkerLayer(
+                  markers: [
+                    mapMarker(
+                      widget.order.pickup.pos,
+                      const PickupPin(),
+                      size: 24,
                     ),
-                  ),
-                MapMarker(
-                  projection: p,
-                  at: widget.order.pickup.mapPos,
-                  size: 24,
-                  child: const PickupPin(),
-                ),
-                MapMarker(
-                  projection: p,
-                  at: widget.order.dropoff.mapPos,
-                  size: 40,
-                  anchorBottom: true,
-                  child: const DropoffPin(),
-                ),
-                MapMarker(
-                  projection: p,
-                  at: driverPos,
-                  size: 36,
-                  child: TruckIcon(
-                    highlighted: true,
-                    facingLeft: ahead.dx < driverPos.dx - 0.01,
-                  ),
+                    mapMarker(
+                      widget.order.dropoff.pos,
+                      const DropoffPin(),
+                      size: 40,
+                      anchorBottom: true,
+                    ),
+                    mapMarker(
+                      driverPos,
+                      TruckIcon(
+                        highlighted: true,
+                        facingLeft: ahead.longitude < driverPos.longitude,
+                      ),
+                      size: 36,
+                    ),
+                  ],
                 ),
               ],
             ),

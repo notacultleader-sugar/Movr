@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../data/driver_data.dart';
 import '../../models/move.dart';
 import '../../theme.dart';
-import '../../widgets/city_map.dart';
+import '../../services/routing.dart';
+import '../../widgets/movr_map.dart';
 import '../../widgets/common.dart';
 import 'job_complete_screen.dart';
 
@@ -22,21 +25,34 @@ class DriverJobScreen extends StatefulWidget {
 
 class _DriverJobScreenState extends State<DriverJobScreen>
     with SingleTickerProviderStateMixin {
-  static const _start = Offset(390, 530);
+  static const _start = driverHomeSpot;
 
   late final AnimationController _drive =
       AnimationController(vsync: this, duration: const Duration(seconds: 6))
         ..addListener(() => setState(() {}))
         ..forward();
 
-  late final List<Offset> _approach = roadRoute(
-    _start,
-    widget.job.pickup.mapPos,
-  );
-  late final List<Offset> _delivery = roadRoute(
-    widget.job.pickup.mapPos,
-    widget.job.dropoff.mapPos,
-  );
+  late List<LatLng> _approach = [_start, widget.job.pickup.pos];
+  late List<LatLng> _delivery = [widget.job.pickup.pos, widget.job.dropoff.pos];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoutes();
+  }
+
+  Future<void> _loadRoutes() async {
+    final job = widget.job;
+    final routes = await Future.wait([
+      Routing.route(_start, job.pickup.pos),
+      Routing.route(job.pickup.pos, job.dropoff.pos),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _approach = routes[0];
+      _delivery = routes[1];
+    });
+  }
 
   _Stage _stage = _Stage.toPickup;
   bool _loadedConfirmed = false;
@@ -45,11 +61,11 @@ class _DriverJobScreenState extends State<DriverJobScreen>
   bool get _driving => _stage == _Stage.toPickup || _stage == _Stage.toDropoff;
   bool get _arrived => _drive.isCompleted;
 
-  Offset get _truckPos => switch (_stage) {
+  LatLng get _truckPos => switch (_stage) {
     _Stage.toPickup => pointAlong(_approach, _drive.value),
-    _Stage.loading => widget.job.pickup.mapPos,
+    _Stage.loading => widget.job.pickup.pos,
     _Stage.toDropoff => pointAlong(_delivery, _drive.value),
-    _Stage.unloading => widget.job.dropoff.mapPos,
+    _Stage.unloading => widget.job.dropoff.pos,
   };
 
   @override
@@ -82,59 +98,44 @@ class _DriverJobScreenState extends State<DriverJobScreen>
     final height = MediaQuery.sizeOf(context).height;
     final pos = _truckPos;
     final path = _stage.index <= _Stage.loading.index ? _approach : _delivery;
-    final ahead = _driving ? pointAlong(path, _drive.value + 0.01) : pos;
-    final focusPts = [_start, job.pickup.mapPos, job.dropoff.mapPos];
-    var focus = Rect.fromPoints(focusPts[0], focusPts[1]);
-    focus = focus
-        .expandToInclude(Rect.fromPoints(focusPts[2], focusPts[2]))
-        .inflate(70);
+    final ahead = _driving
+        ? pointAlong(path, (_drive.value + 0.01).clamp(0.0, 1.0))
+        : pos;
 
     return Scaffold(
       body: Stack(
         children: [
           Positioned.fill(
-            child: CityMap(
-              focus: focus,
+            child: MovrMap(
+              fit: [_start, job.pickup.pos, job.dropoff.pos],
               padding: EdgeInsets.only(
                 top: 100,
                 bottom: height * 0.45,
                 left: 24,
                 right: 24,
               ),
-              overlays: (p) => [
-                Positioned.fill(
-                  child: RouteLayer(projection: p, path: _delivery),
-                ),
+              layers: [
+                routeLayer(_delivery),
                 if (_stage.index <= _Stage.loading.index)
-                  Positioned.fill(
-                    child: RouteLayer(
-                      projection: p,
-                      path: _approach,
-                      color: MovrColors.orange,
-                      dashed: true,
+                  routeLayer(_approach, color: MovrColors.orange, dashed: true),
+                MarkerLayer(
+                  markers: [
+                    mapMarker(job.pickup.pos, const PickupPin(), size: 24),
+                    mapMarker(
+                      job.dropoff.pos,
+                      const DropoffPin(),
+                      size: 40,
+                      anchorBottom: true,
                     ),
-                  ),
-                MapMarker(
-                  projection: p,
-                  at: job.pickup.mapPos,
-                  size: 24,
-                  child: const PickupPin(),
-                ),
-                MapMarker(
-                  projection: p,
-                  at: job.dropoff.mapPos,
-                  size: 40,
-                  anchorBottom: true,
-                  child: const DropoffPin(),
-                ),
-                MapMarker(
-                  projection: p,
-                  at: pos,
-                  size: 36,
-                  child: TruckIcon(
-                    highlighted: true,
-                    facingLeft: ahead.dx < pos.dx - 0.01,
-                  ),
+                    mapMarker(
+                      pos,
+                      TruckIcon(
+                        highlighted: true,
+                        facingLeft: ahead.longitude < pos.longitude,
+                      ),
+                      size: 36,
+                    ),
+                  ],
                 ),
               ],
             ),
