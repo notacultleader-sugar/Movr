@@ -30,7 +30,7 @@ class MoveItem {
 enum VehicleTier {
   haul('Haul', 'Pickup', 45, 'Great for a Couch or TV.'),
   van('Van', 'Cargo', 75, 'Great for a Studio or Bed frame.'),
-  muscle('Muscle', 'Labour only', 50, 'Helpers only. You bring the vehicle.');
+  muscle('Muscle', 'Labour only', 35, 'Helpers only. You bring the vehicle.');
 
   const VehicleTier(this.name, this.vehicleType, this.basePrice, this.tagline);
   final String name;

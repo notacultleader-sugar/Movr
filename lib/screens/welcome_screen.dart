@@ -20,7 +20,7 @@ class WelcomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const MovrLogo(height: 44),
-              const Spacer(),
+              const SizedBox(height: 28),
               Text('Muscle and wheels,\non demand.', style: text.headlineLarge),
               const SizedBox(height: 10),
               Text(
@@ -30,7 +30,16 @@ class WelcomeScreen extends StatelessWidget {
                   height: 1.4,
                 ),
               ),
-              const Spacer(),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Image.asset(
+                    'assets/images/hero_truck.png',
+                    fit: BoxFit.contain,
+                    semanticLabel: 'Moving truck loaded with a box and a sofa',
+                  ),
+                ),
+              ),
               _RoleCard(
                 icon: Icons.weekend,
                 title: 'I need a move',
@@ -75,52 +84,59 @@ class _RoleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fg = dark ? Colors.white : MovrColors.black;
-    return Material(
-      color: dark ? MovrColors.black : MovrColors.surface,
-      borderRadius: kBorderRadius,
-      child: InkWell(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: dark ? null : MovrColors.surface,
+        gradient: dark ? kCharcoalGradient : null,
         borderRadius: kBorderRadius,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: MovrColors.orange,
-                  borderRadius: BorderRadius.circular(14),
+        boxShadow: kFloatingShadow,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: kBorderRadius,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: MovrColors.orange,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 28),
                 ),
-                child: Icon(icon, color: Colors.white, size: 28),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontFamily: kHeadingFont,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
-                        color: fg,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontFamily: kHeadingFont,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
+                          color: fg,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: dark ? Colors.white70 : MovrColors.textMuted,
-                        fontSize: 13,
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: dark ? Colors.white70 : MovrColors.textMuted,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Icon(Icons.arrow_forward, color: fg),
-            ],
+                Icon(Icons.arrow_forward, color: fg),
+              ],
+            ),
           ),
         ),
       ),

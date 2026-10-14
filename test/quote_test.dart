@@ -41,7 +41,7 @@ void main() {
     expect(payout.total, closeTo(49.37, 0.001));
   });
 
-  test('Muscle is helpers x hours x \$50 plus the safety fee', () {
+  test('Muscle is helpers x hours x \$35 plus the safety fee', () {
     const quote = Quote(
       vehicle: VehicleTier.muscle,
       items: [sofa],
@@ -49,9 +49,9 @@ void main() {
       helpers: 2,
       hours: 2,
     );
-    expect(quote.basePrice, 200);
+    expect(quote.basePrice, 140);
     expect(quote.itemsFee, 0);
     expect(quote.distanceFee, 0);
-    expect(quote.total, 210);
+    expect(quote.total, 150);
   });
 }
