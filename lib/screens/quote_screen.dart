@@ -84,7 +84,10 @@ class _QuoteScreenState extends State<QuoteScreen> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _FindingDriverDialog(driver: driver),
+      builder: (_) => _FindingDriverDialog(
+        driver: driver,
+        laborOnly: _quote.vehicle.laborOnly,
+      ),
     );
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -168,9 +171,9 @@ class _QuoteScreenState extends State<QuoteScreen> {
           const SizedBox(height: 24),
           Row(
             children: [
-              Text('2. Vehicle', style: text.titleLarge),
+              Text('2. Vehicle or help', style: text.titleLarge),
               const Spacer(),
-              if (_vanRecommended && _quote.vehicle != VehicleTier.van)
+              if (_vanRecommended && _quote.vehicle == VehicleTier.haul)
                 Text(
                   'Van recommended for this load',
                   style: text.bodySmall?.copyWith(color: MovrColors.orange),
@@ -179,12 +182,12 @@ class _QuoteScreenState extends State<QuoteScreen> {
           ),
           const SizedBox(height: 10),
           SizedBox(
-            height: 160,
+            height: 196,
             child: Row(
               children: [
                 for (final tier in VehicleTier.values) ...[
                   if (tier != VehicleTier.values.first)
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                   Expanded(
                     child: _VehicleCard(
                       tier: tier,
@@ -199,6 +202,29 @@ class _QuoteScreenState extends State<QuoteScreen> {
               ],
             ),
           ),
+          if (_quote.vehicle.laborOnly) ...[
+            const SizedBox(height: 12),
+            _Stepper(
+              label: 'Helpers',
+              value: _quote.helpers,
+              min: 1,
+              max: 4,
+              onChanged: (v) =>
+                  setState(() => _quote = _quote.copyWith(helpers: v)),
+            ),
+            _Stepper(
+              label: 'Hours',
+              value: _quote.hours,
+              min: 1,
+              max: 8,
+              onChanged: (v) =>
+                  setState(() => _quote = _quote.copyWith(hours: v)),
+            ),
+            Text(
+              'You drive; helpers meet you at pickup and ride along to unload.',
+              style: text.bodySmall,
+            ),
+          ],
           const SizedBox(height: 16),
           InkWell(
             onTap: () => setState(() => _showBreakdown = !_showBreakdown),
@@ -215,11 +241,19 @@ class _QuoteScreenState extends State<QuoteScreen> {
           ),
           if (_showBreakdown) ...[
             const SizedBox(height: 8),
-            _line(
-              '${_quote.vehicle.name} base (first ${Quote.includedMiles.toInt()} mi)',
-              _quote.basePrice,
-            ),
-            _line('Item handling (${_quote.items.length})', _quote.itemsFee),
+            if (_quote.vehicle.laborOnly)
+              _line(
+                '${_quote.helpers} helper(s) × ${_quote.hours} hr × '
+                '${money(_quote.vehicle.basePrice)}',
+                _quote.basePrice,
+              )
+            else ...[
+              _line(
+                '${_quote.vehicle.name} base (first ${Quote.includedMiles.toInt()} mi)',
+                _quote.basePrice,
+              ),
+              _line('Item handling (${_quote.items.length})', _quote.itemsFee),
+            ],
             if (_quote.distanceFee > 0)
               _line('Extra distance', _quote.distanceFee),
             _line('Safety fee (insurance + checks)', Quote.safetyFee),
@@ -348,7 +382,7 @@ class _VehicleCard extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: selected ? MovrColors.black : MovrColors.surface,
           borderRadius: kBorderRadius,
@@ -363,11 +397,13 @@ class _VehicleCard extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  tier == VehicleTier.haul
-                      ? Icons.local_shipping
-                      : Icons.airport_shuttle,
+                  switch (tier) {
+                    VehicleTier.haul => Icons.local_shipping,
+                    VehicleTier.van => Icons.airport_shuttle,
+                    VehicleTier.muscle => Icons.fitness_center,
+                  },
                   color: fg,
-                  size: 28,
+                  size: 26,
                 ),
                 const Spacer(),
                 if (selected)
@@ -385,12 +421,13 @@ class _VehicleCard extends StatelessWidget {
               ),
             ),
             Text(
-              '${tier.vehicleType} · ${money(tier.basePrice).replaceAll('.00', '')} base',
+              tier.priceLabel,
               style: const TextStyle(
                 color: MovrColors.orange,
                 fontWeight: FontWeight.w700,
               ),
             ),
+            Text(tier.vehicleType, style: TextStyle(fontSize: 12, color: fg)),
             const SizedBox(height: 4),
             Text(
               tier.tagline,
@@ -407,8 +444,9 @@ class _VehicleCard extends StatelessWidget {
 }
 
 class _FindingDriverDialog extends StatefulWidget {
-  const _FindingDriverDialog({required this.driver});
+  const _FindingDriverDialog({required this.driver, this.laborOnly = false});
   final Driver driver;
+  final bool laborOnly;
 
   @override
   State<_FindingDriverDialog> createState() => _FindingDriverDialogState();
@@ -451,6 +489,8 @@ class _FindingDriverDialogState extends State<_FindingDriverDialog> {
             Text(
               _found
                   ? '${widget.driver.name} accepted!'
+                  : widget.laborOnly
+                  ? 'Finding helpers nearby…'
                   : 'Finding the nearest truck…',
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
@@ -465,6 +505,51 @@ class _FindingDriverDialogState extends State<_FindingDriverDialog> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A "Helpers: [-] 2 [+]" row for the Muscle tier.
+class _Stepper extends StatelessWidget {
+  const _Stepper({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+  final String label;
+  final int value;
+  final int min;
+  final int max;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label, style: Theme.of(context).textTheme.titleMedium),
+        ),
+        IconButton(
+          tooltip: 'Fewer $label',
+          onPressed: value > min ? () => onChanged(value - 1) : null,
+          icon: const Icon(Icons.remove_circle_outline),
+        ),
+        SizedBox(
+          width: 28,
+          child: Text(
+            '$value',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+          ),
+        ),
+        IconButton(
+          tooltip: 'More $label',
+          onPressed: value < max ? () => onChanged(value + 1) : null,
+          icon: const Icon(Icons.add_circle_outline, color: MovrColors.orange),
+        ),
+      ],
     );
   }
 }

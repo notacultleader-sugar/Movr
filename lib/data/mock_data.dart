@@ -148,6 +148,14 @@ const drivers = <VehicleTier, Driver>{
     plate: 'KLM-417',
     phone: '(555) 014-7781',
   ),
+  // Muscle helpers arrive in their own car and ride along to the drop-off.
+  VehicleTier.muscle: Driver(
+    name: 'Devon',
+    rating: 4.9,
+    vehicle: 'Helper · Grey Honda Civic',
+    plate: 'HLP-305',
+    phone: '(555) 014-3318',
+  ),
 };
 
 /// Where matched drivers might be waiting.

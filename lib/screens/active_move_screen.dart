@@ -176,6 +176,9 @@ class _ActiveMoveScreenState extends State<ActiveMoveScreen>
                       driverPos,
                       TruckIcon(
                         highlighted: true,
+                        icon: widget.order.quote.vehicle.laborOnly
+                            ? Icons.directions_car
+                            : Icons.local_shipping,
                         facingLeft: ahead.longitude < driverPos.longitude,
                       ),
                       size: 36,
@@ -457,8 +460,8 @@ class _DriverSheet extends StatelessWidget {
           ),
           _TimelineStep(
             label: phase == MovePhase.enRoute
-                ? 'Driver en route ($minutesAway min${minutesAway == 1 ? '' : 's'} away)'
-                : 'Driver en route',
+                ? '${order.quote.vehicle.laborOnly ? 'Helpers' : 'Driver'} en route ($minutesAway min${minutesAway == 1 ? '' : 's'} away)'
+                : '${order.quote.vehicle.laborOnly ? 'Helpers' : 'Driver'} en route',
             state: _stateFor(MovePhase.enRoute),
           ),
           _TimelineStep(label: 'Loading', state: _stateFor(MovePhase.loading)),
@@ -480,7 +483,9 @@ class _DriverSheet extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    '${order.quote.vehicle.name} · ${order.quote.items.length} item(s) · ${order.quote.miles} mi',
+                    order.quote.vehicle.laborOnly
+                        ? 'Muscle · ${order.quote.helpers} helper(s) · ${order.quote.hours} hr'
+                        : '${order.quote.vehicle.name} · ${order.quote.items.length} item(s) · ${order.quote.miles} mi',
                   ),
                 ),
                 Text(

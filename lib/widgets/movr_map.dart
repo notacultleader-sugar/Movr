@@ -148,9 +148,13 @@ class TruckIcon extends StatelessWidget {
     super.key,
     this.facingLeft = false,
     this.highlighted = false,
+    this.icon = Icons.local_shipping,
   });
   final bool facingLeft;
   final bool highlighted;
+
+  /// A car for Muscle helpers, who arrive without a truck.
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +176,7 @@ class TruckIcon extends StatelessWidget {
       alignment: Alignment.center,
       child: Transform.flip(
         flipX: facingLeft,
-        child: const Icon(Icons.local_shipping, color: Colors.white, size: 17),
+        child: Icon(icon, color: Colors.white, size: 17),
       ),
     );
   }

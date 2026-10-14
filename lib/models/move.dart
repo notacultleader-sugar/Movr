@@ -24,16 +24,26 @@ class MoveItem {
   final IconData icon;
 }
 
-/// Service tiers shown in the vehicle toggle.
+/// Service tiers shown in the vehicle toggle. Haul and Van are a driver
+/// with their vehicle; Muscle is labour only (the customer has a vehicle),
+/// priced per helper per hour.
 enum VehicleTier {
   haul('Haul', 'Pickup', 45, 'Great for a Couch or TV.'),
-  van('Van', 'Cargo', 75, 'Great for a Studio or Bed frame.');
+  van('Van', 'Cargo', 75, 'Great for a Studio or Bed frame.'),
+  muscle('Muscle', 'Labour only', 50, 'Helpers only. You bring the vehicle.');
 
   const VehicleTier(this.name, this.vehicleType, this.basePrice, this.tagline);
   final String name;
   final String vehicleType;
+
+  /// Flat base price, or for Muscle the rate per helper per hour.
   final double basePrice;
   final String tagline;
+
+  bool get laborOnly => this == muscle;
+  String get priceLabel => laborOnly
+      ? '${money(basePrice).replaceAll('.00', '')}/hr'
+      : '${money(basePrice).replaceAll('.00', '')} base';
 }
 
 /// A named location on the map.
@@ -47,11 +57,17 @@ class Place {
 /// Pricing rules for a move:
 ///   tier base price + per-item weight surcharge + extra-mile fee + safety fee.
 /// The first [includedMiles] are in the base price.
+///
+/// Muscle (labour only) is instead helpers x hours x hourly rate + safety
+/// fee: the customer drives, so there is no distance fee, and the hourly
+/// rate covers handling, so there is no item surcharge.
 class Quote {
   const Quote({
     required this.vehicle,
     required this.items,
     required this.miles,
+    this.helpers = 1,
+    this.hours = 1,
   });
 
   static const double safetyFee = 10.00;
@@ -62,16 +78,31 @@ class Quote {
   final List<MoveItem> items;
   final double miles;
 
-  double get basePrice => vehicle.basePrice;
-  double get itemsFee =>
-      items.fold(0.0, (sum, i) => sum + i.weightClass.surcharge);
-  double get distanceFee => math.max(0, miles - includedMiles) * perExtraMile;
+  /// Muscle only.
+  final int helpers;
+  final int hours;
+
+  double get basePrice => vehicle.laborOnly
+      ? vehicle.basePrice * helpers * hours
+      : vehicle.basePrice;
+  double get itemsFee => vehicle.laborOnly
+      ? 0
+      : items.fold(0.0, (sum, i) => sum + i.weightClass.surcharge);
+  double get distanceFee =>
+      vehicle.laborOnly ? 0 : math.max(0, miles - includedMiles) * perExtraMile;
   double get total => basePrice + itemsFee + distanceFee + safetyFee;
 
-  Quote copyWith({VehicleTier? vehicle, List<MoveItem>? items}) => Quote(
+  Quote copyWith({
+    VehicleTier? vehicle,
+    List<MoveItem>? items,
+    int? helpers,
+    int? hours,
+  }) => Quote(
     vehicle: vehicle ?? this.vehicle,
     items: items ?? this.items,
     miles: miles,
+    helpers: helpers ?? this.helpers,
+    hours: hours ?? this.hours,
   );
 }
 

@@ -36,6 +36,14 @@ total = tier base ($45 Haul, $75 Van)
       + $10 safety fee
 ```
 
+Muscle (labour only: helpers, no vehicle) is priced instead as:
+
+```
+total = $50 x helpers x hours + $10 safety fee
+```
+
+$50 per helper-hour is the rate in the revised launch plan; the original proposal named the tier without a price.
+
 A Haul with one sofa comes to **$62.50**, the figure in the spec. The 25% platform take is applied on the payout side, so it does not appear in the customer price.
 
 ## What is mocked

@@ -40,4 +40,18 @@ void main() {
     expect(payout.commission, 13.13);
     expect(payout.total, closeTo(49.37, 0.001));
   });
+
+  test('Muscle is helpers x hours x \$50 plus the safety fee', () {
+    const quote = Quote(
+      vehicle: VehicleTier.muscle,
+      items: [sofa],
+      miles: 12,
+      helpers: 2,
+      hours: 2,
+    );
+    expect(quote.basePrice, 200);
+    expect(quote.itemsFee, 0);
+    expect(quote.distanceFee, 0);
+    expect(quote.total, 210);
+  });
 }
