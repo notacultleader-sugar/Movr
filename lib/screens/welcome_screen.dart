@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../live/live_backend.dart';
+import '../live/live_driver_sign_in.dart';
 import 'driver/signup_screen.dart';
 import 'request_screen.dart';
 
@@ -55,7 +57,11 @@ class WelcomeScreen extends StatelessWidget {
                 title: 'Drive with movr',
                 subtitle: 'Earn \$40–\$90/hour with your truck or van',
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const DriverSignupScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => LiveBackend.enabled
+                        ? const LiveDriverSignInScreen()
+                        : const DriverSignupScreen(),
+                  ),
                 ),
               ),
             ],

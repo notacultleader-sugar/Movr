@@ -4,6 +4,8 @@ import '../data/mock_data.dart';
 import '../models/move.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../live/live_backend.dart';
+import '../live/live_booking.dart';
 import 'active_move_screen.dart';
 import 'plan_move_sheet.dart';
 import 'scanner_screen.dart';
@@ -80,6 +82,14 @@ class _QuoteScreenState extends State<QuoteScreen> {
 
   Future<void> _book() async {
     setState(() => _vehicleChosen = true);
+    if (LiveBackend.enabled) {
+      return bookLiveMove(
+        context,
+        pickup: widget.plan.pickup,
+        dropoff: widget.plan.dropoff,
+        quote: _quote,
+      );
+    }
     final driver = drivers[_quote.vehicle]!;
     await showDialog<void>(
       context: context,

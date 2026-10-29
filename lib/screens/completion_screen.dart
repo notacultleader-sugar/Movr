@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../live/live_backend.dart';
 import '../models/move.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -135,13 +136,20 @@ class _CompletionScreenState extends State<CompletionScreen>
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.credit_card,
+                      Icon(
+                        LiveBackend.enabled
+                            ? Icons.payments_outlined
+                            : Icons.credit_card,
                         size: 16,
                         color: MovrColors.textMuted,
                       ),
                       const SizedBox(width: 6),
-                      Text('Charged to Visa ****4242', style: text.bodySmall),
+                      Text(
+                        LiveBackend.enabled
+                            ? 'Paid to your driver directly'
+                            : 'Charged to Visa ****4242',
+                        style: text.bodySmall,
+                      ),
                     ],
                   ),
                   const Divider(height: 24, color: MovrColors.line),

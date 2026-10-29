@@ -56,6 +56,33 @@ Everything lives in `lib/data/mock_data.dart` and is meant to be swapped for rea
 - **Driver onboarding:** document uploads and the background check are simulated, and approval is instant.
 - **Payments, calls and chat:** UI only. Production: Stripe, a masked calling number, in-app messaging.
 
+## Pilot (live) mode
+
+`lib/live/` holds a real, Firebase-backed version of the core flow for a small pilot with one driver:
+
+- **Customer:** searches real addresses (OpenStreetMap Nominatim, limited to Vancouver Island) or uses their phone's location, gets a quote, leaves a name and mobile number, and requests a driver. They then watch the driver's live position, ETA and each step until delivery. No card is taken; the customer pays the driver directly.
+- **Driver:** signs in with email and password, goes online, sees new requests, accepts one, shares GPS from the phone while the job is open, gets directions and a call button, and taps through arrived, loaded and delivered.
+
+It turns on when `firebaseOptions` in `lib/live/live_config.dart` is filled in (otherwise the app stays the demo described above). Partner stores for the pilot go in `pilotStores` in the same file.
+
+Firebase setup, once:
+
+1. Create a Firebase project and add a **Web app**; paste its config into `firebaseOptions`.
+2. **Authentication:** enable **Anonymous** (customers) and **Email/Password** (drivers).
+3. **Firestore:** create the database, then publish `firestore.rules` (`firebase deploy --only firestore:rules`, or paste it into the console's Rules tab).
+4. Add each driver: create the user under Authentication, then a Firestore document `drivers/{that user's UID}` with `name`, `vehicle`, `plate`, `phone` and `rating`.
+
+Data lives in `jobs/{id}` (status, contact details, pickup and drop-off, items, price, driver and the driver's latest position).
+
+Limits of the pilot: the driver's location is only shared while the app is open on his phone (a web app can't track in the background), there are no push notifications, and nothing is charged in the app.
+
+Test locally against the Firebase emulators:
+
+```bash
+firebase emulators:start --project demo-movr --only auth,firestore
+flutter run -d chrome --dart-define=MOVR_EMULATOR=true
+```
+
 ## Run it
 
 ```bash

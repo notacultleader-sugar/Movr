@@ -3,6 +3,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../data/mock_data.dart';
+import '../live/live_backend.dart';
+import '../live/live_config.dart';
+import '../live/live_driver_sign_in.dart';
+import '../live/live_session.dart';
+import '../live/live_tracking_screen.dart';
+import '../live/live_widgets.dart';
 import '../models/move.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -48,12 +54,20 @@ class RequestScreen extends StatelessWidget {
   Future<void> _store(BuildContext context) async {
     final store = await showModalBottomSheet<PartnerStore>(
       context: context,
-      builder: (_) => const _StoreSheet(),
+      builder: (_) => _StoreSheet(
+        stores: LiveBackend.enabled ? pilotStores : partnerStores,
+      ),
     );
     if (store != null && context.mounted) _plan(context, pickup: store.place);
   }
 
   void _profile(BuildContext context) {
+    if (LiveBackend.enabled) {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const LiveDriverSignInScreen()));
+      return;
+    }
     showModalBottomSheet<void>(
       context: context,
       builder: (sheet) => SafeArea(
@@ -106,16 +120,19 @@ class RequestScreen extends StatelessWidget {
               ],
               padding: const EdgeInsets.only(top: 120, bottom: 220),
               layers: [
-                const LiveTrucksLayer(),
-                MarkerLayer(
-                  markers: [
-                    mapMarker(
-                      currentLocation.pos,
-                      const _YouAreHere(),
-                      size: 26,
-                    ),
-                  ],
-                ),
+                // The pilot has no fleet to show; the demo shows sample trucks.
+                if (!LiveBackend.enabled) ...[
+                  const LiveTrucksLayer(),
+                  MarkerLayer(
+                    markers: [
+                      mapMarker(
+                        currentLocation.pos,
+                        const _YouAreHere(),
+                        size: 26,
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -153,56 +170,66 @@ class RequestScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: MovrColors.black,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircleAvatar(
-                            radius: 4,
-                            backgroundColor: MovrColors.orange,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            '$liveTruckCount trucks nearby · 4 min away',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                  if (LiveBackend.enabled)
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: PilotBadge(text: 'Pilot · Cowichan Valley'),
+                    )
+                  else
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: MovrColors.black,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircleAvatar(
+                              radius: 4,
+                              backgroundColor: MovrColors.orange,
                             ),
-                          ),
-                        ],
+                            SizedBox(width: 8),
+                            Text(
+                              '$liveTruckCount trucks nearby · 4 min away',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  if (LiveBackend.enabled) const _ResumeTracking(),
                   const Spacer(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _QuickAction(
-                        icon: Icons.history,
-                        label: 'Recent',
-                        onTap: () => _plan(context, dropoff: recentDropoff),
-                      ),
-                      _QuickAction(
-                        icon: Icons.storefront_outlined,
-                        label: 'Marketplace',
-                        onTap: () => _marketplace(context),
-                      ),
-                      _QuickAction(
-                        icon: Icons.local_mall_outlined,
-                        label: 'Store',
-                        onTap: () => _store(context),
-                      ),
+                      if (!LiveBackend.enabled) ...[
+                        _QuickAction(
+                          icon: Icons.history,
+                          label: 'Recent',
+                          onTap: () => _plan(context, dropoff: recentDropoff),
+                        ),
+                        _QuickAction(
+                          icon: Icons.storefront_outlined,
+                          label: 'Marketplace',
+                          onTap: () => _marketplace(context),
+                        ),
+                      ],
+                      if (!LiveBackend.enabled || pilotStores.isNotEmpty)
+                        _QuickAction(
+                          icon: Icons.local_mall_outlined,
+                          label: 'Store',
+                          onTap: () => _store(context),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -376,7 +403,8 @@ class _MarketplaceSheet extends StatelessWidget {
 }
 
 class _StoreSheet extends StatelessWidget {
-  const _StoreSheet();
+  const _StoreSheet({required this.stores});
+  final List<PartnerStore> stores;
 
   @override
   Widget build(BuildContext context) {
@@ -395,7 +423,7 @@ class _StoreSheet extends StatelessWidget {
               style: text.bodySmall,
             ),
             const SizedBox(height: 12),
-            for (final s in partnerStores)
+            for (final s in stores)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Container(
@@ -413,6 +441,64 @@ class _StoreSheet extends StatelessWidget {
                 onTap: () => Navigator.pop(context, s),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Live mode: if this phone has a move in progress, offer to go back to it.
+class _ResumeTracking extends StatefulWidget {
+  const _ResumeTracking();
+
+  @override
+  State<_ResumeTracking> createState() => _ResumeTrackingState();
+}
+
+class _ResumeTrackingState extends State<_ResumeTracking> {
+  String? _jobId;
+
+  @override
+  void initState() {
+    super.initState();
+    LiveSession.activeJobId().then((id) {
+      if (mounted) setState(() => _jobId = id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final id = _jobId;
+    if (id == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Material(
+        color: MovrColors.orange,
+        borderRadius: kBorderRadius,
+        child: InkWell(
+          borderRadius: kBorderRadius,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => LiveTrackingScreen(jobId: id)),
+          ),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Icon(Icons.local_shipping, color: Colors.white),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Track your move',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: Colors.white),
+              ],
+            ),
+          ),
         ),
       ),
     );

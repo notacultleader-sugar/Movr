@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 
+import 'live/live_backend.dart';
 import 'screens/welcome_screen.dart';
 import 'theme.dart';
 
-void main() => runApp(const MovrApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (LiveBackend.enabled) {
+    try {
+      await LiveBackend.instance.init().timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // Screens retry on first use and show a connection message.
+    }
+  }
+  runApp(const MovrApp());
+}
 
 class MovrApp extends StatelessWidget {
   const MovrApp({super.key});

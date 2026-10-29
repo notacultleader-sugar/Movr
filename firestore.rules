@@ -1,0 +1,62 @@
+rules_version = '2';
+
+// movr pilot security rules.
+//  - Customers sign in anonymously and can create and read their own jobs,
+//    and cancel them until a driver accepts.
+//  - Drivers are accounts with a drivers/{uid} profile (added by the movr
+//    team in the Firebase console). They can see open jobs, claim one, and
+//    update the status and their location on jobs they hold.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isDriver() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/drivers/$(request.auth.uid));
+    }
+    function changes() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    match /drivers/{uid} {
+      allow read: if signedIn();
+      allow write: if false; // console only
+    }
+
+    match /jobs/{jobId} {
+      allow create: if signedIn()
+        && request.resource.data.customerUid == request.auth.uid
+        && request.resource.data.status == 'requested'
+        && !('driverUid' in request.resource.data);
+
+      allow read: if signedIn() && (
+        resource.data.customerUid == request.auth.uid ||
+        isDriver());
+
+      // Customer cancels before a driver accepts.
+      allow update: if signedIn()
+        && resource.data.customerUid == request.auth.uid
+        && resource.data.status == 'requested'
+        && request.resource.data.status == 'cancelled'
+        && changes().hasOnly(['status', 'cancelledAt', 'updatedAt']);
+
+      // A driver claims an open job for themselves.
+      allow update: if isDriver()
+        && resource.data.status == 'requested'
+        && request.resource.data.status == 'accepted'
+        && request.resource.data.driverUid == request.auth.uid
+        && changes().hasOnly(['status', 'driverUid', 'driver', 'driverPos',
+                              'acceptedAt', 'updatedAt']);
+
+      // The driver holding a job moves it along and shares location.
+      allow update: if isDriver()
+        && resource.data.driverUid == request.auth.uid
+        && request.resource.data.driverUid == request.auth.uid
+        && changes().hasOnly(['status', 'driverPos', 'atPickupAt',
+                              'loadedAt', 'deliveredAt', 'cancelledAt',
+                              'updatedAt']);
+
+      allow delete: if false;
+    }
+  }
+}
