@@ -54,7 +54,7 @@ void main() {
     await tester.tap(find.text('Go online'));
     await tester.pump(const Duration(seconds: 4));
     await settle(tester);
-    expect(find.text('New Haul request'), findsOneWidget);
+    expect(find.text('New Truck request'), findsOneWidget);
     await tester.tap(find.text('Accept'));
     await settle(tester);
 
@@ -73,17 +73,17 @@ void main() {
     await tester.tap(find.text('Complete move'));
     await settle(tester);
 
-    // Sofa job: $52.50 fare − $13.13 fee + $10 tip.
+    // Sofa job: $65.00 fare − $16.25 fee + $10 tip.
     expect(find.text('Move complete'), findsOneWidget);
-    expect(find.text('\$49.37'), findsWidgets);
+    expect(find.text('\$58.75'), findsWidgets);
     await tester.tap(find.text('Back to the map'));
     await settle(tester);
-    expect(find.text('\$49.37'), findsOneWidget); // today's earnings badge
+    expect(find.text('\$58.75'), findsOneWidget); // today's earnings badge
 
     // Earnings screen and cash-out.
     await tester.tap(find.text('Go offline'));
     await tester.pump();
-    await tester.tap(find.text('\$49.37'));
+    await tester.tap(find.text('\$58.75'));
     await settle(tester);
     expect(find.text('Today\'s moves'), findsOneWidget);
     await tester.tap(find.text('Cash out'));

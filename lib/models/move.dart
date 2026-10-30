@@ -5,31 +5,36 @@ import 'package:latlong2/latlong.dart';
 
 /// Weight classes the AI scanner assigns to an item. Each adds a handling
 /// surcharge to the quote.
-enum WeightClass {
-  light('Light', 'Under 50 lb', 2.50),
-  medium('Medium', '50–150 lb', 5.00),
-  heavy('Heavy', '150–250 lb', 7.50),
-  extraHeavy('Extra heavy', '250+ lb', 12.50);
+/// Items are priced by size, whatever vehicle carries them.
+enum ItemSize {
+  small('Small', 'One hand: lamp, chair, boxes', 10),
+  medium('Medium', 'One person: TV, desk, armchair', 20),
+  large('Large', 'Two people: sofa, bed, dresser', 35),
+  extraLarge('Extra large', 'Appliances, sectionals, hot tubs', 55);
 
-  const WeightClass(this.label, this.range, this.surcharge);
+  const ItemSize(this.label, this.examples, this.price);
   final String label;
-  final String range;
-  final double surcharge;
+  final String examples;
+  final double price;
 }
 
 class MoveItem {
-  const MoveItem(this.name, this.weightClass, this.icon);
+  const MoveItem(this.name, this.size, this.icon);
   final String name;
-  final WeightClass weightClass;
+  final ItemSize size;
   final IconData icon;
 }
 
-/// Service tiers shown in the vehicle toggle. Haul and Van are a driver
-/// with their vehicle; Muscle is labour only (the customer has a vehicle),
+/// Service tiers shown in the vehicle toggle. Truck is a driver with any
+/// pickup or van, priced by item size; Muscle is labour only (the customer has a vehicle),
 /// priced per helper per hour.
 enum VehicleTier {
-  haul('Haul', 'Pickup', 45, 'Great for a Couch or TV.'),
-  van('Van', 'Cargo', 75, 'Great for a Studio or Bed frame.'),
+  truck(
+    'Truck',
+    'Pickup or van',
+    30,
+    'One price, any truck. Items priced by size.',
+  ),
   muscle('Muscle', 'Labour only', 35, 'Helpers only. You bring the vehicle.');
 
   const VehicleTier(this.name, this.vehicleType, this.basePrice, this.tagline);
@@ -43,7 +48,7 @@ enum VehicleTier {
   bool get laborOnly => this == muscle;
   String get priceLabel => laborOnly
       ? '${money(basePrice).replaceAll('.00', '')}/hr'
-      : '${money(basePrice).replaceAll('.00', '')} base';
+      : '${money(basePrice).replaceAll('.00', '')} + items';
 }
 
 /// A named location on the map.
@@ -85,9 +90,8 @@ class Quote {
   double get basePrice => vehicle.laborOnly
       ? vehicle.basePrice * helpers * hours
       : vehicle.basePrice;
-  double get itemsFee => vehicle.laborOnly
-      ? 0
-      : items.fold(0.0, (sum, i) => sum + i.weightClass.surcharge);
+  double get itemsFee =>
+      vehicle.laborOnly ? 0 : items.fold(0.0, (sum, i) => sum + i.size.price);
   double get distanceFee =>
       vehicle.laborOnly ? 0 : math.max(0, miles - includedMiles) * perExtraMile;
   double get total => basePrice + itemsFee + distanceFee + safetyFee;

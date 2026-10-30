@@ -111,7 +111,7 @@ class LiveJob {
       quote: Quote(
         vehicle: VehicleTier.values.firstWhere(
           (t) => t.name == m['tier'],
-          orElse: () => VehicleTier.haul,
+          orElse: () => VehicleTier.truck,
         ),
         items: [
           for (final i in (m['items'] as List? ?? const []))
@@ -179,7 +179,7 @@ Place placeFromMap(Object? v) {
 
 Map<String, dynamic> itemToMap(MoveItem i) => {
   'name': i.name,
-  'weight': i.weightClass.name,
+  'size': i.size.name,
 };
 
 MoveItem itemFromMap(Map<String, dynamic> m) {
@@ -188,9 +188,9 @@ MoveItem itemFromMap(Map<String, dynamic> m) {
   if (known.isNotEmpty) return known.first;
   return MoveItem(
     name,
-    WeightClass.values.firstWhere(
-      (w) => w.name == m['weight'],
-      orElse: () => WeightClass.medium,
+    ItemSize.values.firstWhere(
+      (w) => w.name == (m['size'] ?? m['weight']),
+      orElse: () => ItemSize.medium,
     ),
     Icons.inventory_2,
   );

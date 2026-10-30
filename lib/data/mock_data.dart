@@ -52,14 +52,14 @@ class MarketplaceListing {
   final MoveItem item;
 }
 
-const sofa = MoveItem('Sofa', WeightClass.heavy, Icons.weekend);
-const tv = MoveItem('TV (55")', WeightClass.medium, Icons.tv);
-const bedFrame = MoveItem('Bed frame', WeightClass.heavy, Icons.bed);
-const dresser = MoveItem('Dresser', WeightClass.heavy, Icons.table_bar);
-const armchair = MoveItem('Armchair', WeightClass.medium, Icons.chair);
-const boxes = MoveItem('Moving boxes', WeightClass.light, Icons.inventory_2);
-const fridge = MoveItem('Refrigerator', WeightClass.extraHeavy, Icons.kitchen);
-const desk = MoveItem('Desk', WeightClass.medium, Icons.desk);
+const sofa = MoveItem('Sofa', ItemSize.large, Icons.weekend);
+const tv = MoveItem('TV (55")', ItemSize.medium, Icons.tv);
+const bedFrame = MoveItem('Bed frame', ItemSize.large, Icons.bed);
+const dresser = MoveItem('Dresser', ItemSize.large, Icons.table_bar);
+const armchair = MoveItem('Armchair', ItemSize.medium, Icons.chair);
+const boxes = MoveItem('Moving boxes', ItemSize.small, Icons.inventory_2);
+const fridge = MoveItem('Refrigerator', ItemSize.extraLarge, Icons.kitchen);
+const desk = MoveItem('Desk', ItemSize.medium, Icons.desk);
 
 /// Order the simulated AI scanner "detects" items in.
 const scannableItems = <MoveItem>[
@@ -134,19 +134,12 @@ const partnerStores = <PartnerStore>[
 ];
 
 const drivers = <VehicleTier, Driver>{
-  VehicleTier.haul: Driver(
+  VehicleTier.truck: Driver(
     name: 'Marcus',
     rating: 4.9,
     vehicle: 'Black Ford F-150',
     plate: 'BJK-992',
     phone: '(555) 014-2290',
-  ),
-  VehicleTier.van: Driver(
-    name: 'Priya',
-    rating: 4.8,
-    vehicle: 'White Ford Transit',
-    plate: 'KLM-417',
-    phone: '(555) 014-7781',
   ),
   // Muscle helpers arrive in their own car and ride along to the drop-off.
   VehicleTier.muscle: Driver(

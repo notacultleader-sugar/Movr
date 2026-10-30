@@ -23,9 +23,9 @@ void main() {
     await tester.tap(find.text('Get my quote'));
     await settle(tester);
 
-    // Stage 2: no items yet → $45 + $10 safety fee. Scan a sofa → $62.50.
+    // Stage 2: no items yet → $30 + $10 safety fee. Scan a sofa → $75.00.
     expect(find.text('Build your move'), findsOneWidget);
-    expect(find.text('\$55.00'), findsOneWidget);
+    expect(find.text('\$40.00'), findsOneWidget);
     await tester.tap(find.text('Scan Items with AI'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 3));
@@ -33,7 +33,7 @@ void main() {
     expect(find.text('Sofa'), findsOneWidget);
     await tester.tap(find.text('Add to my move'));
     await settle(tester);
-    expect(find.text('\$62.50'), findsOneWidget);
+    expect(find.text('\$75.00'), findsOneWidget);
 
     await tester.tap(find.text('Book move'));
     await tester.pump();

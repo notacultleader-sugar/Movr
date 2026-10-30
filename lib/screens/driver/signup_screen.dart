@@ -210,8 +210,8 @@ class _DriverSignupScreenState extends State<DriverSignupScreen> {
     const SizedBox(height: 6),
     Text(
       _type == DriverVehicleType.pickup
-          ? 'You\'ll get movr Haul jobs: single items and appliances.'
-          : 'You\'ll get movr Van jobs: studios, dorms and big IKEA runs.',
+          ? 'You\'ll get single items, appliances and Marketplace pickups.'
+          : 'You\'ll get bigger loads too: studios, dorms and IKEA runs.',
       style: Theme.of(context).textTheme.bodySmall,
     ),
     const SizedBox(height: 16),

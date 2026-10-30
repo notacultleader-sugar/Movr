@@ -7,7 +7,7 @@ This is the **app prototype** (customer and driver sides), built in Flutter so i
 | Stage | Screen | What works in the prototype |
 | --- | --- | --- |
 | 1 | **Request** (`lib/screens/request_screen.dart`) | Live map with moving trucks, "Where are we moving to?" search, quick actions for Recent, Marketplace (FB Marketplace / Craigslist listing fills the pickup and the item) and partner Store |
-| 2 | **Quote** (`lib/screens/quote_screen.dart`) | Item › Vehicle › Book progress bar, "Scan Items with AI" camera view, Haul / Van toggle, live orange total, price breakdown |
+| 2 | **Quote** (`lib/screens/quote_screen.dart`) | Item › Vehicle › Book progress bar, "Scan Items with AI" camera view, Truck / Muscle toggle, live orange total, price breakdown |
 | 3 | **Active Move** (`lib/screens/active_move_screen.dart`) | Driver card (Marcus · 4.9, Black Ford F-150, BJK-992), live status timeline, truck moving on the map, Call and Message buttons |
 | 4 | **Completion** (`lib/screens/completion_screen.dart`) | "Move Complete!", charge summary, $5 / $10 / $15 / Custom tips, 5-star rating and quick tags |
 
@@ -30,8 +30,8 @@ Driver payout (`DriverPayout` in `lib/models/move.dart`): customer total minus t
 `Quote` in `lib/models/move.dart`:
 
 ```
-total = tier base ($45 Haul, $75 Van)
-      + item handling (Light $2.50, Medium $5, Heavy $7.50, Extra heavy $12.50 each)
+total = $30 truck trip (any pickup or van; covers the first 5 miles)
+      + each item by size (Small $10, Medium $20, Large $35, Extra large $55)
       + $2/mile past the first 5 miles
       + $10 safety fee
 ```
@@ -44,7 +44,7 @@ total = $35 x helpers x hours + $10 safety fee
 
 $35 per helper-hour (plus tips) is the client's rate from their Oct 14 feedback; the revised launch plan had $50.
 
-A Haul with one sofa comes to **$62.50**, the figure in the spec. The 25% platform take is applied on the payout side, so it does not appear in the customer price.
+Since Oct 30 (Ian's call) price follows item size, not vehicle: the old Haul ($45) and Van ($75) tiers became one Truck price. One sofa comes to **$75**. The 25% platform take is applied on the payout side, so it does not appear in the customer price.
 
 ## What is mocked
 

@@ -4,20 +4,24 @@ import 'package:movr/data/mock_data.dart';
 import 'package:movr/models/move.dart';
 
 void main() {
-  test('Haul with a sofa matches the spec price of \$62.50', () {
-    const quote = Quote(vehicle: VehicleTier.haul, items: [sofa], miles: 4.2);
-    expect(quote.total, 62.50); // 45 base + 7.50 heavy item + 10 safety fee
+  test('A sofa costs \$75: \$30 truck + \$35 large item + \$10 safety fee', () {
+    const quote = Quote(vehicle: VehicleTier.truck, items: [sofa], miles: 4.2);
+    expect(quote.total, 75.00);
   });
 
-  test('Van base is \$75 plus the safety fee', () {
-    const quote = Quote(vehicle: VehicleTier.van, items: [], miles: 3);
-    expect(quote.total, 85.00);
+  test('Each item adds its size price', () {
+    const quote = Quote(
+      vehicle: VehicleTier.truck,
+      items: [boxes, tv, sofa, fridge],
+      miles: 3,
+    );
+    expect(quote.itemsFee, 10 + 20 + 35 + 55);
   });
 
   test('Miles past the included 5 are charged per mile', () {
-    const quote = Quote(vehicle: VehicleTier.haul, items: [boxes], miles: 8);
+    const quote = Quote(vehicle: VehicleTier.truck, items: [boxes], miles: 8);
     expect(quote.distanceFee, 6.00);
-    expect(quote.total, 45 + 2.50 + 6 + 10);
+    expect(quote.total, 30 + 10 + 6 + 10);
   });
 
   test('pointAlong walks the route by distance', () {
@@ -34,11 +38,11 @@ void main() {
   });
 
   test('Driver keeps 75% of the fare plus 100% of the tip', () {
-    const quote = Quote(vehicle: VehicleTier.haul, items: [sofa], miles: 4.2);
+    const quote = Quote(vehicle: VehicleTier.truck, items: [sofa], miles: 4.2);
     const payout = DriverPayout(quote, tip: 10);
-    expect(payout.fare, 52.50); // $62.50 minus the $10 safety fee
-    expect(payout.commission, 13.13);
-    expect(payout.total, closeTo(49.37, 0.001));
+    expect(payout.fare, 65.00); // $75 minus the $10 safety fee
+    expect(payout.commission, 16.25);
+    expect(payout.total, closeTo(58.75, 0.001));
   });
 
   test('Muscle is helpers x hours x \$35 plus the safety fee', () {

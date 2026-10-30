@@ -9,7 +9,7 @@ import '../theme.dart';
 /// Prototype: the camera feed and detection are simulated. Each scan returns
 /// the next item from [scannableItems] with its weight class. A production
 /// build would run an on-device vision model (or a cloud vision API) on the
-/// camera frames and map the detected label to a [WeightClass].
+/// camera frames and map the detected label to a [ItemSize].
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key, this.skip = 0});
 
@@ -219,14 +219,14 @@ class _ResultCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     Text(
-                      '${item.weightClass.label} · ${item.weightClass.range} · 94% match',
+                      '${item.size.label} · ${item.size.examples} · 94% match',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
                 ),
               ),
               Text(
-                '+${money(item.weightClass.surcharge)}',
+                '+${money(item.size.price)}',
                 style: const TextStyle(
                   fontWeight: FontWeight.w800,
                   color: MovrColors.orange,

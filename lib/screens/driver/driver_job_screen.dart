@@ -239,10 +239,7 @@ class _DriverJobScreenState extends State<DriverJobScreen>
                                 ),
                                 Text(
                                   job.items
-                                      .map(
-                                        (i) =>
-                                            '${i.name} (${i.weightClass.label})',
-                                      )
+                                      .map((i) => '${i.name} (${i.size.label})')
                                       .join(', '),
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),

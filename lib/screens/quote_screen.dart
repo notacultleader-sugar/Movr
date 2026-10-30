@@ -22,7 +22,7 @@ class QuoteScreen extends StatefulWidget {
 
 class _QuoteScreenState extends State<QuoteScreen> {
   late Quote _quote = Quote(
-    vehicle: VehicleTier.haul,
+    vehicle: VehicleTier.truck,
     items: List.of(widget.plan.items),
     miles: routeMiles(widget.plan.pickup.pos, widget.plan.dropoff.pos),
   );
@@ -30,11 +30,6 @@ class _QuoteScreenState extends State<QuoteScreen> {
   bool _showBreakdown = false;
 
   int get _step => _quote.items.isEmpty ? 0 : (_vehicleChosen ? 2 : 1);
-
-  bool get _vanRecommended =>
-      _quote.items.length >= 4 ||
-      _quote.items.any((i) => i.weightClass == WeightClass.extraHeavy) ||
-      _quote.items.where((i) => i.weightClass == WeightClass.heavy).length >= 2;
 
   Future<void> _scan() async {
     final item = await Navigator.of(context).push<MoveItem>(
@@ -65,10 +60,8 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(i.icon),
                 title: Text(i.name),
-                subtitle: Text(
-                  '${i.weightClass.label} · ${i.weightClass.range}',
-                ),
-                trailing: Text('+${money(i.weightClass.surcharge)}'),
+                subtitle: Text('${i.size.label} · ${i.size.examples}'),
+                trailing: Text('+${money(i.size.price)}'),
                 onTap: () => Navigator.pop(context, i),
               ),
           ],
@@ -165,7 +158,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
               for (final (i, item) in _quote.items.indexed)
                 InputChip(
                   avatar: Icon(item.icon, size: 18),
-                  label: Text('${item.name} · ${item.weightClass.label}'),
+                  label: Text('${item.name} · ${item.size.label}'),
                   onDeleted: () => setState(() {
                     final items = List.of(_quote.items)..removeAt(i);
                     _quote = _quote.copyWith(items: items);
@@ -179,17 +172,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          Row(
-            children: [
-              Text('2. Vehicle or help', style: text.titleLarge),
-              const Spacer(),
-              if (_vanRecommended && _quote.vehicle == VehicleTier.haul)
-                Text(
-                  'Van recommended for this load',
-                  style: text.bodySmall?.copyWith(color: MovrColors.orange),
-                ),
-            ],
-          ),
+          Text('2. Truck or help', style: text.titleLarge),
           const SizedBox(height: 10),
           SizedBox(
             height: 196,
@@ -259,10 +242,11 @@ class _QuoteScreenState extends State<QuoteScreen> {
               )
             else ...[
               _line(
-                '${_quote.vehicle.name} base (first ${Quote.includedMiles.toInt()} mi)',
+                '${_quote.vehicle.name} trip (first ${Quote.includedMiles.toInt()} mi)',
                 _quote.basePrice,
               ),
-              _line('Item handling (${_quote.items.length})', _quote.itemsFee),
+              for (final i in _quote.items)
+                _line('${i.name} · ${i.size.label}', i.size.price),
             ],
             if (_quote.distanceFee > 0)
               _line('Extra distance', _quote.distanceFee),
@@ -408,8 +392,7 @@ class _VehicleCard extends StatelessWidget {
               children: [
                 Icon(
                   switch (tier) {
-                    VehicleTier.haul => Icons.local_shipping,
-                    VehicleTier.van => Icons.airport_shuttle,
+                    VehicleTier.truck => Icons.local_shipping,
                     VehicleTier.muscle => Icons.fitness_center,
                   },
                   color: fg,

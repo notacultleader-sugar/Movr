@@ -46,7 +46,7 @@ const jobPool = <JobRequest>[
       LatLng(48.7960, -123.6960),
     ),
     items: [sofa],
-    vehicle: VehicleTier.haul,
+    vehicle: VehicleTier.truck,
   ),
   JobRequest(
     customer: 'Ben',
@@ -58,7 +58,7 @@ const jobPool = <JobRequest>[
       LatLng(48.7745, -123.7060),
     ),
     items: [dresser, boxes],
-    vehicle: VehicleTier.haul,
+    vehicle: VehicleTier.truck,
   ),
   JobRequest(
     customer: 'Chloe',
@@ -74,14 +74,14 @@ const jobPool = <JobRequest>[
       LatLng(48.8000, -123.7120),
     ),
     items: [bedFrame, armchair],
-    vehicle: VehicleTier.haul,
+    vehicle: VehicleTier.truck,
   ),
 ];
 
 enum DriverVehicleType {
-  pickup('Pickup truck', Icons.local_shipping, VehicleTier.haul),
-  cargoVan('Cargo van', Icons.airport_shuttle, VehicleTier.van),
-  boxTruck('Box truck', Icons.fire_truck, VehicleTier.van);
+  pickup('Pickup truck', Icons.local_shipping, VehicleTier.truck),
+  cargoVan('Cargo van', Icons.airport_shuttle, VehicleTier.truck),
+  boxTruck('Box truck', Icons.fire_truck, VehicleTier.truck);
 
   const DriverVehicleType(this.label, this.icon, this.tier);
   final String label;
