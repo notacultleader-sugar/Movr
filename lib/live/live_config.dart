@@ -4,13 +4,24 @@ import '../data/mock_data.dart' show PartnerStore;
 
 /// Firebase settings for the live (pilot) version of movr.
 ///
-/// Leave [firebaseOptions] null and the app runs as the clickable demo.
-/// Fill it in with the web app config from the Firebase console
-/// (Project settings > Your apps > Web app > SDK setup > Config) and the
-/// app switches to live mode: real accounts, bookings and driver location.
-/// These values identify the project; they are not secret. Access is
-/// controlled by the security rules in firestore.rules.
-const FirebaseOptions? firebaseOptions = null;
+/// Build with `--dart-define=MOVR_PILOT=true` for live mode (real accounts,
+/// bookings and driver location); without it the app is the clickable demo.
+/// GitHub Pages serves both: the demo at /Movr/ and the pilot at /Movr/pilot/.
+const bool pilotBuild = bool.fromEnvironment('MOVR_PILOT');
+
+const FirebaseOptions? firebaseOptions = pilotBuild ? pilotOptions : null;
+
+/// The movr-pilot Firebase project's web app config (Project settings >
+/// Your apps > Web app). These values identify the project; they are not
+/// secret. Access is controlled by the security rules in firestore.rules.
+const FirebaseOptions pilotOptions = FirebaseOptions(
+  apiKey: 'AIzaSyD-aKXeiyrXt24G43n4MEtXPLaZygy1DHo',
+  authDomain: 'movr-pilot.firebaseapp.com',
+  projectId: 'movr-pilot',
+  storageBucket: 'movr-pilot.firebasestorage.app',
+  messagingSenderId: '41861758456',
+  appId: '1:41861758456:web:348686b5eda2ec9de12a0d',
+);
 
 /// `flutter run --dart-define=MOVR_EMULATOR=true` talks to the local
 /// Firebase emulators instead (used for testing).

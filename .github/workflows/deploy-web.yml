@@ -27,6 +27,10 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/"
+      - run: mv build/web build/demo
+      # The pilot (live Firebase) build is served under /pilot/.
+      - run: flutter build web --release --no-web-resources-cdn --dart-define=MOVR_PILOT=true --base-href "/${{ github.event.repository.name }}/pilot/"
+      - run: mv build/web build/demo/pilot && mv build/demo build/web
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web

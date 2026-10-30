@@ -261,6 +261,9 @@ class LiveBackend {
         'user-not-found' => 'That email and password don\'t match.',
         'too-many-requests' => 'Too many tries. Wait a minute and try again.',
         'network-request-failed' => 'No connection. Check your signal.',
+        'operation-not-allowed' =>
+          'Driver sign-in isn\'t switched on in Firebase yet '
+              '(Authentication > Sign-in method > Email/Password).',
         _ => 'Couldn\'t sign in (${e.code}).',
       });
     }
