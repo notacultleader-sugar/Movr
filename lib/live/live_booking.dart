@@ -3,21 +3,29 @@ import 'package:flutter/material.dart';
 import '../models/move.dart';
 import '../theme.dart';
 import 'live_backend.dart';
+import 'live_customer_sign_in.dart';
 import 'live_session.dart';
 import 'live_tracking_screen.dart';
 
-/// Pilot booking: asks who the driver should contact, sends the request,
-/// and opens live tracking.
+/// Pilot booking: makes sure the customer is signed in, asks who the
+/// driver should contact, sends the request, and opens live tracking.
 Future<void> bookLiveMove(
   BuildContext context, {
   required Place pickup,
   required Place dropoff,
   required Quote quote,
 }) async {
+  if (!await ensureCustomerSignedIn(context) || !context.mounted) return;
+  var saved = (name: '', phone: '');
+  try {
+    saved = await LiveBackend.instance.customerProfile();
+  } catch (_) {}
+  if (!context.mounted) return;
   final contact = await showModalBottomSheet<_Contact>(
     context: context,
     isScrollControlled: true,
-    builder: (_) => _ContactSheet(total: quote.total),
+    builder: (_) =>
+        _ContactSheet(total: quote.total, name: saved.name, phone: saved.phone),
   );
   if (contact == null || !context.mounted) return;
 
@@ -40,6 +48,9 @@ Future<void> bookLiveMove(
       notes: contact.notes,
     );
     await LiveSession.setActiveJob(id);
+    LiveBackend.instance
+        .saveCustomerProfile(name: contact.name, phone: contact.phone)
+        .ignore();
     navigator.pop();
     navigator.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => LiveTrackingScreen(jobId: id)),
@@ -65,16 +76,22 @@ class _Contact {
 }
 
 class _ContactSheet extends StatefulWidget {
-  const _ContactSheet({required this.total});
+  const _ContactSheet({
+    required this.total,
+    required this.name,
+    required this.phone,
+  });
   final double total;
+  final String name;
+  final String phone;
 
   @override
   State<_ContactSheet> createState() => _ContactSheetState();
 }
 
 class _ContactSheetState extends State<_ContactSheet> {
-  final _name = TextEditingController();
-  final _phone = TextEditingController();
+  late final _name = TextEditingController(text: widget.name);
+  late final _phone = TextEditingController(text: widget.phone);
   final _notes = TextEditingController();
 
   bool get _ready =>

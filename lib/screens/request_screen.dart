@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../data/mock_data.dart';
 import '../live/live_backend.dart';
 import '../live/live_config.dart';
+import '../live/live_customer_sign_in.dart';
 import '../live/live_driver_sign_in.dart';
 import '../live/live_session.dart';
 import '../live/live_tracking_screen.dart';
@@ -63,9 +64,7 @@ class RequestScreen extends StatelessWidget {
 
   void _profile(BuildContext context) {
     if (LiveBackend.enabled) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const LiveDriverSignInScreen()));
+      _liveProfile(context);
       return;
     }
     showModalBottomSheet<void>(
@@ -96,6 +95,69 @@ class RequestScreen extends StatelessWidget {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const DriverHomeScreen()),
                     (_) => false,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Pilot account sheet: who is signed in, sign in or out, driver login.
+  void _liveProfile(BuildContext context) {
+    final user = LiveBackend.instance.customer;
+    final navigator = Navigator.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.person_outline),
+                title: Text(
+                  user == null
+                      ? 'Not signed in'
+                      : (user.displayName?.isNotEmpty ?? false)
+                      ? user.displayName!
+                      : user.email ?? 'Signed in',
+                ),
+                subtitle: user?.email == null ? null : Text(user!.email!),
+              ),
+              const SizedBox(height: 8),
+              if (user == null)
+                FilledButton(
+                  onPressed: () {
+                    Navigator.pop(sheet);
+                    ensureCustomerSignedIn(context);
+                  },
+                  child: const Text('Sign in or create account'),
+                )
+              else
+                OutlinedButton(
+                  onPressed: () async {
+                    Navigator.pop(sheet);
+                    await LiveSession.setActiveJob(null);
+                    await LiveBackend.instance.signOut();
+                  },
+                  child: const Text('Sign out'),
+                ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                icon: const Icon(Icons.local_shipping_outlined),
+                label: const Text('Driver sign in'),
+                onPressed: () {
+                  Navigator.pop(sheet);
+                  navigator.push(
+                    MaterialPageRoute(
+                      builder: (_) => const LiveDriverSignInScreen(),
+                    ),
                   );
                 },
               ),

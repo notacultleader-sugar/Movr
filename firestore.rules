@@ -1,15 +1,19 @@
 rules_version = '2';
 
 // movr pilot security rules.
-//  - Customers sign in anonymously and can create and read their own jobs,
-//    and cancel them until a driver accepts.
+//  - Customers sign in (Google or email) and can create and read their own
+//    jobs, cancel them until a driver accepts, and keep a customers/{uid}
+//    profile (name and phone for the next booking).
 //  - Drivers are accounts with a drivers/{uid} profile (added by the movr
 //    team in the Firebase console). They can see open jobs, claim one, and
 //    update the status and their location on jobs they hold.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() { return request.auth != null; }
+    function signedIn() {
+      return request.auth != null &&
+        request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
     function isDriver() {
       return signedIn() &&
         exists(/databases/$(database)/documents/drivers/$(request.auth.uid));
@@ -21,6 +25,10 @@ service cloud.firestore {
     match /drivers/{uid} {
       allow read: if signedIn();
       allow write: if false; // console only
+    }
+
+    match /customers/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
     }
 
     match /jobs/{jobId} {

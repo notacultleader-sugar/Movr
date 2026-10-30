@@ -198,8 +198,9 @@ MoveItem itemFromMap(Map<String, dynamic> m) {
 
 /// Real accounts, bookings and driver location, in Firebase.
 ///
-/// Customers sign in anonymously (no password; the booking carries their
-/// name and phone). Drivers sign in with an email and password that Ian
+/// Customers sign in with Google or an email and password before they book
+/// (live_customer_sign_in.dart); their name and phone live in customers/{uid}.
+/// Drivers sign in with an email and password that Ian
 /// creates in the Firebase console, and must also have a drivers/{uid}
 /// profile there; the security rules only let those accounts see open
 /// jobs and update them.
@@ -230,10 +231,103 @@ class LiveBackend {
 
   String? get uid => _auth.currentUser?.uid;
 
-  /// Customers: a silent account so bookings belong to this phone.
-  Future<void> ensureCustomer() async {
+  /// The signed-in customer, or null. Anonymous sessions don't count.
+  User? get customer {
+    final user = _auth.currentUser;
+    return user == null || user.isAnonymous ? null : user;
+  }
+
+  Future<User> signInWithGoogle() async {
     await init();
-    if (_auth.currentUser == null) await _auth.signInAnonymously();
+    try {
+      final cred = await _auth.signInWithPopup(GoogleAuthProvider());
+      return cred.user!;
+    } on FirebaseAuthException catch (e) {
+      throw AccountError(_accountMessage(e));
+    }
+  }
+
+  Future<User> signInCustomer(String email, String password) async {
+    await init();
+    try {
+      final cred = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      return cred.user!;
+    } on FirebaseAuthException catch (e) {
+      throw AccountError(_accountMessage(e));
+    }
+  }
+
+  Future<User> createCustomer(
+    String name,
+    String email,
+    String password,
+  ) async {
+    await init();
+    try {
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      await cred.user!.updateDisplayName(name.trim());
+      await saveCustomerProfile(name: name);
+      return cred.user!;
+    } on FirebaseAuthException catch (e) {
+      throw AccountError(_accountMessage(e));
+    }
+  }
+
+  Future<void> sendPasswordReset(String email) async {
+    await init();
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      throw AccountError(_accountMessage(e));
+    }
+  }
+
+  static String _accountMessage(FirebaseAuthException e) => switch (e.code) {
+    'invalid-credential' ||
+    'wrong-password' ||
+    'user-not-found' => 'That email and password don\'t match.',
+    'invalid-email' => 'That doesn\'t look like an email address.',
+    'email-already-in-use' =>
+      'There\'s already an account with that email. Sign in instead.',
+    'weak-password' => 'Use a password with at least 6 characters.',
+    'popup-closed-by-user' ||
+    'cancelled-popup-request' => 'Sign-in was cancelled.',
+    'popup-blocked' =>
+      'Your browser blocked the Google window. Allow pop-ups and try again.',
+    'too-many-requests' => 'Too many tries. Wait a minute and try again.',
+    'network-request-failed' => 'No connection. Check your signal.',
+    'operation-not-allowed' =>
+      'That sign-in method isn\'t switched on in Firebase yet.',
+    _ => 'Couldn\'t sign in (${e.code}).',
+  };
+
+  /// Name and phone saved from the customer's last booking.
+  Future<({String name, String phone})> customerProfile() async {
+    final user = customer;
+    if (user == null) return (name: '', phone: '');
+    final doc = await _db.collection('customers').doc(user.uid).get();
+    final data = doc.data() ?? const {};
+    return (
+      name: (data['name'] as String?) ?? user.displayName ?? '',
+      phone: (data['phone'] as String?) ?? '',
+    );
+  }
+
+  Future<void> saveCustomerProfile({String? name, String? phone}) async {
+    final user = customer;
+    if (user == null) return;
+    await _db.collection('customers').doc(user.uid).set({
+      'name': ?name?.trim(),
+      'phone': ?phone?.trim(),
+      'email': ?user.email,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   /// Drivers: email and password. Returns the profile, or throws
@@ -289,7 +383,8 @@ class LiveBackend {
     required String contactPhone,
     String notes = '',
   }) async {
-    await ensureCustomer();
+    await init();
+    if (customer == null) throw StateError('Sign in before booking.');
     final doc = await _jobs.add({
       'status': JobStatus.requested.name,
       'customerUid': uid,
@@ -381,6 +476,13 @@ class LiveBackend {
 
 class DriverSignInError implements Exception {
   const DriverSignInError(this.message);
+  final String message;
+  @override
+  String toString() => message;
+}
+
+class AccountError implements Exception {
+  const AccountError(this.message);
   final String message;
   @override
   String toString() => message;

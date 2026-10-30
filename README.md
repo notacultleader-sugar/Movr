@@ -60,7 +60,7 @@ Everything lives in `lib/data/mock_data.dart` and is meant to be swapped for rea
 
 `lib/live/` holds a real, Firebase-backed version of the core flow for a small pilot with one driver:
 
-- **Customer:** searches real addresses (OpenStreetMap Nominatim, limited to Vancouver Island) or uses their phone's location, gets a quote, leaves a name and mobile number, and requests a driver. They then watch the driver's live position, ETA and each step until delivery. No card is taken; the customer pays the driver directly.
+- **Customer:** signs in with Google or an email and password (name and phone are remembered in `customers/{uid}`), searches real addresses (OpenStreetMap Nominatim, limited to Vancouver Island) or uses their phone's location, gets a quote, leaves a name and mobile number, and requests a driver. They then watch the driver's live position, ETA and each step until delivery. No card is taken; the customer pays the driver directly.
 - **Driver:** signs in with email and password, goes online, sees new requests, accepts one, shares GPS from the phone while the job is open, gets directions and a call button, and taps through arrived, loaded and delivered.
 
 It turns on in builds made with `--dart-define=MOVR_PILOT=true`, which use the `movr-pilot` Firebase project in `lib/live/live_config.dart`; other builds stay the demo described above. GitHub Pages publishes both: the demo at `/Movr/` and the pilot at `/Movr/pilot/`. Partner stores for the pilot go in `pilotStores` in the same file.
@@ -68,7 +68,7 @@ It turns on in builds made with `--dart-define=MOVR_PILOT=true`, which use the `
 Firebase setup, once:
 
 1. Create a Firebase project and add a **Web app**; paste its config into `pilotOptions`.
-2. **Authentication:** enable **Anonymous** (customers) and **Email/Password** (drivers).
+2. **Authentication:** enable **Email/Password** (drivers and customers) and **Google** (customers), and add the site's domain (`notacultleader-sugar.github.io`) under Authorized domains.
 3. **Firestore:** create the database, then publish `firestore.rules` (`firebase deploy --only firestore:rules`, or paste it into the console's Rules tab).
 4. Add each driver: create the user under Authentication, then a Firestore document `drivers/{that user's UID}` with `name`, `vehicle`, `plate`, `phone` and `rating`.
 
