@@ -11,6 +11,7 @@ import '../live/live_session.dart';
 import '../live/live_tracking_screen.dart';
 import '../live/live_widgets.dart';
 import '../models/move.dart';
+import '../services/geocoding.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/live_trucks.dart';
@@ -59,7 +60,18 @@ class RequestScreen extends StatelessWidget {
         stores: LiveBackend.enabled ? pilotStores : partnerStores,
       ),
     );
-    if (store != null && context.mounted) _plan(context, pickup: store.place);
+    if (store == null || !context.mounted) return;
+    var place = store.place;
+    if (LiveBackend.enabled) {
+      // Pin the store from its real address; keep the saved spot if the
+      // lookup fails.
+      final hits = await Geocoding.instance.search(place.address);
+      if (hits.isNotEmpty) {
+        place = Place(place.name, place.address, hits.first.pos);
+      }
+      if (!context.mounted) return;
+    }
+    _plan(context, pickup: place);
   }
 
   void _profile(BuildContext context) {

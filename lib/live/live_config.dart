@@ -1,6 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:latlong2/latlong.dart';
+
 import '../data/mock_data.dart' show PartnerStore;
+import '../models/move.dart';
 
 /// Firebase settings for the live (pilot) version of movr.
 ///
@@ -36,5 +39,15 @@ const FirebaseOptions emulatorOptions = FirebaseOptions(
 );
 
 /// Real partner stores for the pilot, shown under "Store" on the map
-/// screen in live mode. Empty hides the button.
-const List<PartnerStore> pilotStores = [];
+/// screen in live mode. Empty hides the button. The position is
+/// approximate; the app looks the address up again when a store is picked.
+const List<PartnerStore> pilotStores = [
+  PartnerStore(
+    Place(
+      'Society Barbers',
+      '191 Kenneth St, Duncan',
+      LatLng(48.7797, -123.7085),
+    ),
+    'Pilot partner · downtown Duncan',
+  ),
+];
